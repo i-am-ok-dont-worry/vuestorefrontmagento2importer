@@ -114,13 +114,6 @@ class CategoryAdapter extends AbstractMagentoAdapter {
           const subpromises = [];
           if (item.children_data && item.children_data.length) {
             this._extendChildrenCategories(item.id, item.children_data, result, subpromises);
-
-            /*Promise.all(subpromises).then(function (results) {
-              done(item)
-            }).catch(function (err) {
-              logger.error(err)
-              done(item)
-            })*/
             this.processCategoryQueue()
                 .then(() => {
                   done(item);
