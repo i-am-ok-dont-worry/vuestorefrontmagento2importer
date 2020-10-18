@@ -26,14 +26,14 @@ const reindexAttributes = (adapterName, removeNonExistent) => {
   return new Promise((resolve, reject) => {
     let adapter = factory.getAdapter(adapterName, 'attribute');
     let tsk = new Date().getTime();
-  
+
     adapter.run({
       transaction_key: tsk,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
         }
-  
+
         logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
@@ -48,16 +48,16 @@ const reindexReviews = (adapterName, removeNonExistent) => {
   return new Promise((resolve, reject) => {
     let adapter = factory.getAdapter(adapterName, 'review');
     let tsk = new Date().getTime();
-  
+
     adapter.cleanUp(tsk);
-  
+
     adapter.run({
       transaction_key: tsk,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
         }
-  
+
         logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
@@ -147,14 +147,14 @@ const reindexTaxRules = (adapterName, removeNonExistent) => {
   return new Promise((resolve, reject) => {
     let adapter = factory.getAdapter(adapterName, 'taxrule');
     let tsk = new Date().getTime();
-  
+
     adapter.run({
       transaction_key: tsk,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
         }
-  
+
         logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
@@ -441,7 +441,7 @@ program
   .action((cmd) => {
     runProductsworker(cmd.adapter, cmd.partitions);
   })
-      
+
 program
   .command('reviews')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
@@ -449,7 +449,7 @@ program
   .action(async (cmd) => {
     await reindexReviews(cmd.adapter, cmd.removeNonExistent);
   })
-  
+
 program
   .command('taxrule')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
@@ -457,7 +457,7 @@ program
   .action(async (cmd) => {
     await reindexTaxRules(cmd.adapter, cmd.removeNonExistent);
   })
-      
+
 /**
 * Sync cms blocks
 */

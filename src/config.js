@@ -30,11 +30,11 @@ module.exports = {
   },
 
   magento: {
-    url: process.env.MAGENTO_URL || 'http://magento2.demo-1.divante.pl/rest/',
-    consumerKey: process.env.MAGENTO_CONSUMER_KEY || 'alva6h6hku9qxrpfe02c2jalopx7od1q',
-    consumerSecret: process.env.MAGENTO_CONSUMER_SECRET || '9tgfpgoojlx9tfy21b8kw7ssfu2aynpm',
-    accessToken: process.env.MAGENTO_ACCESS_TOKEN || 'rw5w0si9imbu45h3m9hkyrfr4gjina8q',
-    accessTokenSecret: process.env.MAGENTO_ACCESS_TOKEN_SECRET || '00y9dl4vpxgcef3gn5mntbxtylowjcc9',
+    url: process.env.MAGENTO_URL || 'https://ktm.mage.staging.grupakmk.pl/rest/',
+    consumerKey: process.env.MAGENTO_CONSUMER_KEY || '7qtx5dxgf8dcbqrtrp6gqoykkmebvli8',
+    consumerSecret: process.env.MAGENTO_CONSUMER_SECRET || '4zknqjlyptnluwpo5st2vaetsumusxku',
+    accessToken: process.env.MAGENTO_ACCESS_TOKEN || '0n1hlfvdfcwel93kxq0f1la1vqpazzuc',
+    accessTokenSecret: process.env.MAGENTO_ACCESS_TOKEN_SECRET || '9a17vimser7djlls1o5f3wsafkt897fe',
     storeId: process.env.MAGENTO_STORE_ID || 1,
     currencyCode: process.env.MAGENTO_CURRENCY_CODE || 'USD',
     msi: { enabled: process.env.MAGENTO_MSI_ENABLED || false, stockId: process.env.MAGENTO_MSI_STOCK_ID || 1 }

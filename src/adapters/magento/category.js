@@ -4,7 +4,9 @@ let AbstractMagentoAdapter = require('./abstract');
 const CacheKeys = require('./cache_keys');
 const util = require('util');
 const request = require('request');
-const _slugify = require('../../helpers/slugify')
+const _slugify = require('../../helpers/slugify');
+const kue = require('kue');
+const queue = kue.createQueue();
 
 const _normalizeExtendedData = function (result, generateUrlKey = true, config = null) {
   if (result.custom_attributes) {
@@ -60,13 +62,13 @@ class CategoryAdapter extends AbstractMagentoAdapter {
   }
 
   _extendSingleCategory(rootId, catToExtend) {
-    const generateUniqueUrlKeys = this.generateUniqueUrlKeys
-    const config = this.config
+    const generateUniqueUrlKeys = this.generateUniqueUrlKeys;
+    const config = this.config;
     return this.api.categories.getSingle(catToExtend.id).then(function(result) {
-      Object.assign(catToExtend, _normalizeExtendedData(result, generateUniqueUrlKeys, config))
-      logger.info(`Subcategory data extended for ${rootId}, children object ${catToExtend.id}`)
+      Object.assign(catToExtend, _normalizeExtendedData(result, generateUniqueUrlKeys, config));
+      logger.info(`Subcategory data extended for ${rootId}, children object ${catToExtend.id}`);
     }).catch(function(err) {
-      logger.error(err)
+      logger.error(err);
     });
   }
 
@@ -74,9 +76,11 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     for (const child of children) {
       if (Array.isArray(child.children_data)) {
         this._extendChildrenCategories(rootId, child.children_data, result, subpromises);
-        subpromises.push(this._extendSingleCategory(rootId, child));
+        this.appendToQueue(rootId, child);
+        // subpromises.push(this._extendSingleCategory(rootId, child));
       } else {
-        subpromises.push(this._extendSingleCategory(rootId, child));
+        this.appendToQueue(rootId, child);
+        // subpromises.push(this._extendSingleCategory(rootId, child));
       }
     }
     return result;
@@ -95,7 +99,7 @@ class CategoryAdapter extends AbstractMagentoAdapter {
       item.slug = item.url_key;
       if (this.config.seo.useUrlDispatcher) {
         item.url_path = this.config.seo.categoryUrlPathMapper(item)
-      } else {               
+      } else {
         item.url_path = item.url_key;
       }
 
@@ -108,16 +112,24 @@ class CategoryAdapter extends AbstractMagentoAdapter {
           logger.debug(`Storing extended category data to cache under: ${key}`);
           this.cache.set(key, JSON.stringify(item));
 
-          const subpromises = []
+          const subpromises = [];
           if (item.children_data && item.children_data.length) {
-            this._extendChildrenCategories(item.id, item.children_data, result, subpromises)
+            this._extendChildrenCategories(item.id, item.children_data, result, subpromises);
 
-            Promise.all(subpromises).then(function (results) {
+            /*Promise.all(subpromises).then(function (results) {
               done(item)
             }).catch(function (err) {
               logger.error(err)
               done(item)
-            })
+            })*/
+            this.processCategoryQueue()
+                .then(() => {
+                  done(item);
+                })
+                .catch((err) => {
+                  logger.error(`Error while processing categories: `, err);
+                  done(item);
+                });
           } else {
             done(item);
           }
@@ -133,6 +145,59 @@ class CategoryAdapter extends AbstractMagentoAdapter {
         return done(item);
       }
 
+    });
+  }
+
+  /**
+   * Appends category to priority queue for further processing
+   * @param rootId {number} Current category root id
+   * @param category {Category} Magento category object
+   */
+  appendToQueue (rootId, catToExtend) {
+    queue.createJob('category-mage2-import', { rootId, catToExtend })
+        .save((err) => {
+          if (err) {
+            logger.debug('Category import job cannot be queued within redis. Terminating...');
+            process.exit(0);
+          } else {
+            logger.info(`Category ${catToExtend.id || rootId} queued to further process`);
+          }
+        });
+  }
+
+  /**
+   * Processes queued categories fetch operation one by one from priority queue.
+   * It prevents JS stack overflow and NGINX worker exceeded errors.
+   * When job is polled from priority queue one at a time, it then fetches category from remote Magento Rest Client.
+   * After job is done, it is removed from redis queue and queue is released for further job.
+   *
+   * @returns {Promise<void>} Promise resolved when queue done processing all jobs
+   */
+  processCategoryQueue () {
+    return new Promise((resolve, reject) => {
+      queue.process('category-mage2-import', (job, done) => {
+        const generateUniqueUrlKeys = this.generateUniqueUrlKeys;
+        const config = this.config;
+        const { rootId, catToExtend } = job.data;
+        this.api.categories.getSingle(catToExtend.id).then(function(result) {
+          Object.assign(catToExtend, _normalizeExtendedData(result, generateUniqueUrlKeys, config));
+          // logger.info(`Subcategory data extended for ${rootId}, children object ${catToExtend.id}`);
+          done();
+        }).catch(function(err) {
+          logger.error(`Cannot process: ${err}`);
+          done(err);
+          reject(err);
+        });
+      });
+
+      queue.on('complete', () => {
+        logger.info(`Done processing queued tasks`);
+        resolve();
+      });
+
+      queue.on('progress', (progress) => {
+        logger.info(`Category processing: ${progress}%`);
+      });
     });
   }
 
