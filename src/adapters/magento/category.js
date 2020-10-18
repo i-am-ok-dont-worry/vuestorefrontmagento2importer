@@ -88,7 +88,6 @@ class CategoryAdapter extends AbstractMagentoAdapter {
 
   preProcessItem(item) {
     return new Promise((done, reject) => {
-
       if (!item) {
         return done(item);
       }
@@ -175,13 +174,13 @@ class CategoryAdapter extends AbstractMagentoAdapter {
    */
   processCategoryQueue () {
     return new Promise((resolve, reject) => {
-      queue.process('category-mage2-import', (job, done) => {
+      let total = 0;
+      queue.process('category-mage2-import', Number(this.current_context.maxActiveJobs), (job, done) => {
         const generateUniqueUrlKeys = this.generateUniqueUrlKeys;
         const config = this.config;
         const { rootId, catToExtend } = job.data;
         this.api.categories.getSingle(catToExtend.id).then(function(result) {
           Object.assign(catToExtend, _normalizeExtendedData(result, generateUniqueUrlKeys, config));
-          // logger.info(`Subcategory data extended for ${rootId}, children object ${catToExtend.id}`);
           done();
         }).catch(function(err) {
           logger.error(`Cannot process: ${err}`);
@@ -190,13 +189,15 @@ class CategoryAdapter extends AbstractMagentoAdapter {
         });
       });
 
-      queue.on('complete', () => {
-        logger.info(`Done processing queued tasks`);
-        resolve();
-      });
-
-      queue.on('progress', (progress) => {
-        logger.info(`Category processing: ${progress}%`);
+      queue.on('job complete', () => {
+        total++;
+        queue.inactiveCount('category-mage2-import', (err, inactive) => {
+          logger.info(`Completed: ${total}. Remaining: ${inactive}`);
+          if (inactive === 0) {
+            logger.info('Completed!');
+            resolve();
+          }
+        });
       });
     });
   }

@@ -115,7 +115,7 @@ const reindexPages = (adapterName, removeNonExistent) => {
   })
 }
 
-const reindexCategories = (adapterName, removeNonExistent, extendedCategories, generateUniqueUrlKeys) => {
+const reindexCategories = (adapterName, removeNonExistent, extendedCategories, generateUniqueUrlKeys, maxActiveJobs) => {
   removeNonExistent = _handleBoolParam(removeNonExistent)
   extendedCategories = _handleBoolParam(extendedCategories)
   generateUniqueUrlKeys = (_handleBoolParam(generateUniqueUrlKeys))
@@ -128,6 +128,7 @@ const reindexCategories = (adapterName, removeNonExistent, extendedCategories, g
       transaction_key: tsk,
       extendedCategories: extendedCategories,
       generateUniqueUrlKeys: generateUniqueUrlKeys,
+      maxActiveJobs,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
@@ -350,8 +351,9 @@ program
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--extendedCategories <extendedCategories>', 'extended categories import', true)
   .option('--generateUniqueUrlKeys <generateUniqueUrlKeys>', 'make sure that category url keys are uniqe', true)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .action(async (cmd) => {
-    await reindexCategories(cmd.adapter, cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys);
+    await reindexCategories(cmd.adapter, cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs);
   });
 
 program

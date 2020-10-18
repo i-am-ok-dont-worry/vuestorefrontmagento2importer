@@ -34,7 +34,7 @@ module.exports.RestClient = function (options) {
                 json: true,
                 body: request_data.body,
             }, function (error, response, body) {
-                logger.debug('Response received.');
+                // logger.debug('Response received.');
                 if (error) {
                     logger.error('Error occured: ' + error);
                     reject(error);
@@ -43,7 +43,7 @@ module.exports.RestClient = function (options) {
                     var errorMessage = 'HTTP ERROR ' + response.code;
                     if(body && body.hasOwnProperty('message') )
                         errorMessage = errorString(body.message, body.hasOwnProperty('parameters') ? body.parameters : {});
-                    
+
                     logger.error('API call failed: ' + errorMessage);
                     reject(errorMessage);
                 }
