@@ -252,10 +252,13 @@ class ProductAdapter extends AbstractMagentoAdapter {
       return attribute ? [parseInt(attribute.value)] : []
     }
 
-    const findOptionValues = option => ([
-      ...findConfigurableOptionsValues(option.attribute_id),
-      ...findCustomAttributesValues(option.attribute_code)
-    ])
+    const findOptionValues = option => {
+      if (!option) { return []; }
+      return ([
+        ...findConfigurableOptionsValues(option.attribute_id),
+        ...findCustomAttributesValues(option.attribute_code)
+      ])
+    }
 
     const selectFields = (res) => res.map(o => {
       const attributeOptionValues = findOptionValues(o)
@@ -275,7 +278,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
         slug: o.slug,
         options
       }
-    })
+    });
 
     const attributeCodes = customAttributes.map(obj => new Promise((resolve) => {
       const key = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, obj.attribute_code);
@@ -653,7 +656,8 @@ class ProductAdapter extends AbstractMagentoAdapter {
         return done(item) // all subpromises return refernce to the product
       }).catch(err => {
         logger.error(err);
-        return done(item)
+        // return done(item)
+        reject(err);
       });
     });
   }

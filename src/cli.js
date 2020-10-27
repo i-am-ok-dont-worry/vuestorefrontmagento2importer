@@ -341,6 +341,7 @@ program
   .command('attributes')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .action(async (cmd) => {
     await reindexAttributes(cmd.adapter, cmd.removeNonExistent);
   });
@@ -351,7 +352,7 @@ program
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--extendedCategories <extendedCategories>', 'extended categories import', true)
   .option('--generateUniqueUrlKeys <generateUniqueUrlKeys>', 'make sure that category url keys are uniqe', true)
-  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 6)
   .action(async (cmd) => {
     await reindexCategories(cmd.adapter, cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs);
   });
@@ -395,6 +396,7 @@ program
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--updatedAfter <updatedAfter>', 'timestamp to start the synchronization from', '')
   .option('--page <page>', 'start from specific page', null)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 10)
   .action((cmd) => {
     if (cmd.updatedAfter) {
       reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, new Date(cmd.updatedAfter), cmd.page);
@@ -448,6 +450,7 @@ program
   .command('reviews')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .action(async (cmd) => {
     await reindexReviews(cmd.adapter, cmd.removeNonExistent);
   })
@@ -456,6 +459,7 @@ program
   .command('taxrule')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .action(async (cmd) => {
     await reindexTaxRules(cmd.adapter, cmd.removeNonExistent);
   })
@@ -467,6 +471,7 @@ program
   .command('blocks')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .action(async (cmd) => {
     await reindexBlocks(cmd.adapter, cmd.removeNonExistent);
   })

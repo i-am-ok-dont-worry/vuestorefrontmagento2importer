@@ -2,6 +2,8 @@
 
 const AdapterFactory = require('./factory');
 const Redis = require('redis');
+const kue = require('kue');
+const queue = kue.createQueue();
 
 class AbstractAdapter {
 
@@ -36,8 +38,13 @@ class AbstractAdapter {
     this.page = 1;
     this.current_context = {};
 
+    // Local
+    this.index = 0;
+    this.count = 0;
+
     this.use_paging = false;
     this.is_federated = false;
+    this.is_running = false;
 
     this.validateConfig(this.config);
 
@@ -126,101 +133,128 @@ class AbstractAdapter {
     return this.is_federated;
   }
 
-  processItems(items, level) {
-
-    if (isNaN(level))
-      level = 0;
+  processItems (items, level) {
     items = this.prepareItems(items);
+    this.index = 0;
+    let db = this.db;
+    this.count = items.length;
 
+    if (isNaN(level)) { level = 0; }
     if (!items) {
       logger.error('No items given to processItems call!');
       return;
     }
-
-    let count = items.length;
-    let index = 0;
-
-    if (count == 0) {
+    if (this.count == 0) {
       logger.warn('No records to process!');
       return this.onDone(this);
-    } else
-      this.tasks_count += count;
+    } else {
+      this.tasks_count += this.count;
+    }
+    if (!db) { throw new Error('No db adapter connection established!'); }
+    if (this.total_count) { logger.info(`Total count is: ${this.total_count}`); }
 
-    let db = this.db;
-    if (!db)
-      throw new Error('No db adapter connection established!');
+    items.forEach((item) => {
+      this.appendItemToQueue(item);
+      if (item.children_data && item.children_data.length > 0) {
+        logger.info(`--L:${level} Processing child items ...`);
+        this.processItems(item.children_data, level + 1);
+      }
+    });
 
-    if (this.total_count)
-      logger.info(`Total count is: ${this.total_count}`)
+    if (!this.is_running) {
+      this.processBulk();
+    }
+  }
 
-    items.map((item) => {
+  /**
+   * Appends jobs to the Redis queue - it is used for further processing
+   * @param item Magento response object
+   */
+  appendItemToQueue (item) {
+    const taskTransactionKey = this.getCurrentContext().transaction_key;
+    queue.createJob('mage2-import-job', { ...item, title: item.name || item.id })
+        .attempts(3)
+        .backoff( { delay: 60 * 1000, type:'fixed' })
+        .save((err) => {
+          if (err) {
+            logger.debug('Import job cannot be queued within redis. Terminating...');
+          } else {
+            logger.info(`Job ${item.id || taskTransactionKey} queued to further process`);
+          }
+        });
+  }
 
-      this.preProcessItem(item).then((item) => {
+  processBulk () {
+    this.is_running = true;
+    queue.process('mage2-import-job', Number(this.current_context.maxActiveJobs || 10), (job, done) => {
+      const item = job.data;
+      this.preProcessItem(item)
+          .then((item) => {
+            item.tsk = this.getCurrentContext().transaction_key;
+            this.tasks_count--;
+            logger.info(`Importing ${this.getLabel(item)}`);
 
-        this.tasks_count--;
-
-        item.tsk = this.getCurrentContext().transaction_key; // transaction key for items that can be then cleaned up
-
-        logger.info(`Importing ${index} of ${count} - ${this.getLabel(item)} with tsk = ${item.tsk}`);
-        logger.info(`Tasks count = ${this.tasks_count}`);
-
-        if (this.update_document)
-          this.db.updateDocument(this.getCollectionName(), this.normalizeDocumentFormat(item))
-        else
-          logger.debug('Skipping database update');
-
-        if (item.children_data && item.children_data.length > 0) {
-          logger.info(`--L:${level} Processing child items ...`);
-          this.processItems(item.children_data, level + 1);
-        }
-
-        if (this.tasks_count == 0 && !this.use_paging) { // this is the last item!
-          logger.info('No tasks to process. All records processed!');
-          this.db.close();
-
-          return this.onDone(this);
-        } else {
-
-          if (index == (count - 1)) { // page done!
-            logger.debug(`--L:${level} Level done! Current page: ${this.page} of ${this.page_count}`);
-            if (parseInt(level) == 0) {
-
-              if (this.use_paging && !this.isFederated()) { //TODO: paging should be refactored using queueing
-
-                if (this.page >= (this.page_count)) {
-                  logger.info('All pages processed!');
-                  this.db.close();
-
-                  this.onDone(this);
-                } else {
-                  const context = this.getCurrentContext()
-                  if (context.page) {
-                    context.page++
-                    this.page++;
-                  } else {
-                    context.page = ++this.page;
-                  }
-                  logger.debug(`Switching page to ${this.page}`);
-                  let exitCallback = this.onDone;
-                  this.getSourceData(context)
-                    .then(this.processItems.bind(this))
-                    .catch((err) => {
-                      logger.error(err);
-                      exitCallback()
-                    });
+            // Invalidate document in elasticsearch and update it once again
+            if (this.update_document) {
+              this.db.updateDocument(this.getCollectionName(), this.normalizeDocumentFormat(item), (err, res) => {
+                if (err) {
+                  debugger;
+                  logger.error(res.body.error.reason);
+                  process.exit(0);
                 }
-              }
+              });
+            } else {
+              logger.debug('Skipping database update');
             }
+
+            this.index++;
+            done();
+          })
+          .catch((reason) => {
+            logger.error(reason);
+            done(reason);
+          });
+    });
+
+    queue.on('job complete', (jobId) => {
+      queue.inactiveCount('mage2-import-job', (err, inactive) => {
+        logger.info(`Completed: ${this.index}. Remaining: ${inactive}`);
+        if (inactive === 0) {
+          if (!this.use_paging) {
+            logger.info('Completed!');
+            this.db.close();
+            this.onDone(this);
+          } else {
+
+            const context = this.getCurrentContext();
+            if (context.page) {
+              context.page++;
+              this.page++;
+            } else {
+              context.page = ++this.page;
+            }
+
+            logger.debug(`Switching page to ${this.page}`);
+            let exitCallback = this.onDone;
+            this.getSourceData(context)
+                .then(this.processItems.bind(this))
+                .catch((err) => {
+                  logger.error(err);
+                  exitCallback();
+                });
           }
         }
-
-        index++;
-      }).catch((reason) => {
-        logger.error(reason);
-        return this.onDone(this);
       });
-    })
+
+      kue.Job.get(jobId, (err, job) => {
+        if (err) return;
+        job.remove((err) => {
+          if (err) throw err;
+        });
+      });
+    });
   }
+
 }
 
 module.exports = AbstractAdapter;
