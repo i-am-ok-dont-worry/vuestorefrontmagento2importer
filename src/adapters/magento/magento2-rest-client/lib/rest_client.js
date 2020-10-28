@@ -40,9 +40,11 @@ module.exports.RestClient = function (options) {
                     reject(error);
                     return;
                 } else if (!httpCallSucceeded(response)) {
-                    var errorMessage = 'HTTP ERROR ' + response.code;
-                    if(body && body.hasOwnProperty('message') )
-                        errorMessage = errorString(body.message, body.hasOwnProperty('parameters') ? body.parameters : {});
+                    var errorMessage = 'HTTP ERROR ' + response.code + request_data.;
+                    if(body && body.hasOwnProperty('message')) {
+                        const message = errorString(body.message, body.hasOwnProperty('parameters') ? body.parameters : {});
+                        errorMessage = `HTTP ERROR `
+                    }
 
                     logger.error('API call failed: ' + errorMessage);
                     reject(errorMessage);
