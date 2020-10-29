@@ -190,11 +190,11 @@ function cleanup(adapterName, cleanupType, transactionKey) {
   }
 }
 
-function reindexProducts(adapterName, removeNonExistent, partitions, partitionSize, initQueue, skus, updatedAfter = null, page = null) {
+function reindexProducts(adapterName, removeNonExistent, partitions, partitionSize, initQueue, skus, updatedAfter = null, page = null, maxActiveJobs) {
   removeNonExistent = _handleBoolParam(removeNonExistent)
   initQueue = _handleBoolParam(initQueue)
 
-  let adapter = factory.getAdapter(adapterName, 'product');
+  let adapter = factory.getAdapter(adapterName, 'product_new');
 
   if (updatedAfter) {
     logger.info('Delta indexer started for', updatedAfter)
@@ -227,7 +227,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
 
       // TODO: separate the execution part to run in multi-tenant env
       queue.process('products', partition_count, (job, done) => {
-        let adapter = factory.getAdapter(adapterName, 'product');
+        let adapter = factory.getAdapter(adapterName, 'product_new');
         if (job && job.data.page && job.data.page_size) {
           logger.info(`Processing job: ${job.data.page}`);
 
@@ -237,6 +237,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
             page: job.data.page,
             parent_sync: job.data.updatedAfter !== null,
             updated_after: job.data.updatedAfter,
+            maxActiveJobs,
             done_callback: () => {
               logger.info('Task done!');
               return done();
@@ -252,7 +253,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
 
               if (removeNonExistent) {
                 logger.info('CleaningUp products!');
-                let adapter = factory.getAdapter(adapterName, 'product');
+                let adapter = factory.getAdapter(adapterName, 'product_new');
                 adapter.cleanUp(transaction_key);
               }
 
@@ -273,6 +274,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
       updated_after: updatedAfter,
       transaction_key: tsk,
       parent_sync: updatedAfter !== null,
+      maxActiveJobs,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
@@ -396,12 +398,12 @@ program
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--updatedAfter <updatedAfter>', 'timestamp to start the synchronization from', '')
   .option('--page <page>', 'start from specific page', null)
-  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 10)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
   .action((cmd) => {
     if (cmd.updatedAfter) {
-      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, new Date(cmd.updatedAfter), cmd.page);
+      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, new Date(cmd.updatedAfter), cmd.page, cmd.maxActiveJobs);
     } else {
-      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page);
+      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page, cmd.maxActiveJobs);
     }
   });
 

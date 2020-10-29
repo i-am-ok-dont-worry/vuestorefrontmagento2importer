@@ -22,7 +22,7 @@ const serial = funcs =>
 funcs.reduce((promise, func) =>
     promise.then(result => func().then(Array.prototype.concat.bind(result))), Promise.resolve([]))
 
- const optionLabel = (attr, optionId) => {
+const optionLabel = (attr, optionId) => {
   if (attr) {
     let opt = attr.options.find((op) => { // TODO: cache it in memory
       if (_.toString(op.value) === _.toString(optionId)) {
@@ -33,7 +33,7 @@ funcs.reduce((promise, func) =>
   } else {
     return optionId
   }
-}
+};
 
 class ProductAdapter extends AbstractMagentoAdapter {
 
@@ -93,7 +93,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
   }
 
   getSourceData(context) {
-    const that = this
+    const that = this;
     const retryHandler = (context, err, reject) => {
       context.retry_count = context.retry_count ? context.retry_count + 1 : 1;
       if (err == null || context.retry_count < HTTP_RETRIES ) {
@@ -147,18 +147,19 @@ class ProductAdapter extends AbstractMagentoAdapter {
                 });
           });
         } else {
-          return this.getProductSourceData(context).catch(err => {
+          return this.getProductSourceData(context)
+            .catch(err => {
               retryHandler(context, err, null)
-            })
+            });
         }
       } else {
         if (reject) {
-          reject(err)
+          reject(err);
         } else {
-          throw err
+          throw err;
         }
       }
-    }
+    };
 
     // run the import logick
     return retryHandler(context, null, null)
@@ -235,34 +236,34 @@ class ProductAdapter extends AbstractMagentoAdapter {
   processAttributes(customAttributes, configurableOptions) {
     const loadFromCache = (key) => new Promise((resolve) =>
       this.cache.get(key, (err, serializedAtr) => resolve(JSON.parse(serializedAtr)))
-    )
+    );
     const findConfigurableOptionsValues = attributeId => {
       const attribute = configurableOptions.find(
         opt => parseInt(opt.attribute_id) === parseInt(attributeId)
-      )
+      );
 
       if (attribute) {
-        return attribute.values.map(val => parseInt(val.value_index))
+        return attribute.values.map(val => parseInt(val.value_index));
       }
 
-      return []
-    }
+      return [];
+    };
 
     const findCustomAttributesValues = (attributeCode) => {
       const attribute = customAttributes.find(
         opt => opt.attribute_code === attributeCode
-      )
+      );
 
       return attribute ? [parseInt(attribute.value)] : []
-    }
+    };
 
     const findOptionValues = option => {
       if (!option) { return []; }
       return ([
         ...findConfigurableOptionsValues(option.attribute_id),
         ...findCustomAttributesValues(option.attribute_code)
-      ])
-    }
+      ]);
+    };
 
     const selectFields = (res) => res.map(o => {
       const attributeOptionValues = findOptionValues(o)
@@ -287,12 +288,12 @@ class ProductAdapter extends AbstractMagentoAdapter {
     const attributeCodes = customAttributes.map(obj => new Promise((resolve) => {
       const key = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, obj.attribute_code);
       loadFromCache(key).then(resolve)
-    }))
+    }));
 
     const attributeIds = configurableOptions.map(obj => new Promise((resolve) => {
       const key = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, obj.attribute_id);
       loadFromCache(key).then(resolve)
-    }))
+    }));
 
     return Promise.all([
       ...attributeCodes,

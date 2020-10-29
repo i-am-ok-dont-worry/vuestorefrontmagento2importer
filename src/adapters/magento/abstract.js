@@ -51,6 +51,14 @@ class AbstractMagentoAdapter extends AbstractAdapter{
     return item;
   }
 
+  /**
+   * Methods which runs after all processes has complete
+   * to handle errored jobs
+   */
+  rerunUnstable () {
+    return Promise.resolve();
+  }
+
 }
 
 module.exports = AbstractMagentoAdapter;

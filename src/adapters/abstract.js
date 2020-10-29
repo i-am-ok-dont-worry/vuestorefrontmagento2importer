@@ -76,7 +76,7 @@ class AbstractAdapter {
     if (!(this.current_context.transaction_key))
       this.current_context.transaction_key = new Date().getTime(); // the key used to filter out records NOT ADDED by this import
 
-    this.db.connect(() => {
+    this.db.connect(async () => {
       logger.info('Connected correctly to server');
       logger.info(`TRANSACTION KEY = ${this.current_context.transaction_key}`);
 
@@ -86,6 +86,13 @@ class AbstractAdapter {
           this.current_context.done_callback();
         }
       ): this.defaultDoneCallback;
+
+      try {
+        await this.rerunUnstable();
+      } catch (e) {
+        logger.warn(`Running only unstable tasks! If you want to run full reindex. Clear elasticsearch index and redis queue`);
+        process.exit(1);
+      }
 
       let exitCallback = this.onDone;
       this.getSourceData(this.current_context)
@@ -184,6 +191,9 @@ class AbstractAdapter {
         });
   }
 
+  /**
+   * Bulk processes queue elements
+   */
   processBulk () {
     this.is_running = true;
     queue.process('mage2-import-job', Number(this.current_context.maxActiveJobs || 10), (job, done) => {
@@ -198,8 +208,7 @@ class AbstractAdapter {
             if (this.update_document) {
               this.db.updateDocument(this.getCollectionName(), this.normalizeDocumentFormat(item), (err, res) => {
                 if (err) {
-                  debugger;
-                  logger.error(res.body.error.reason);
+                  logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
                   process.exit(0);
                 }
               });
@@ -226,22 +235,33 @@ class AbstractAdapter {
             this.onDone(this);
           } else {
 
-            const context = this.getCurrentContext();
-            if (context.page) {
-              context.page++;
-              this.page++;
-            } else {
-              context.page = ++this.page;
-            }
+            if (this.use_paging && !this.isFederated()) {
+              if (this.page >= (this.page_count)) {
+                logger.info('All pages processed!');
+                this.rerunUnstable();
+                this.db.close();
 
-            logger.debug(`Switching page to ${this.page}`);
-            let exitCallback = this.onDone;
-            this.getSourceData(context)
-                .then(this.processItems.bind(this))
-                .catch((err) => {
-                  logger.error(err);
-                  exitCallback();
-                });
+                this.onDone(this);
+              } else {
+                // Increment page and rerun
+                const context = this.getCurrentContext();
+                if (context.page) {
+                  context.page++;
+                  this.page++;
+                } else {
+                  context.page = ++this.page;
+                }
+
+                logger.debug(`Switching page to ${this.page}`);
+                let exitCallback = this.onDone;
+                this.getSourceData(context)
+                    .then(this.processItems.bind(this))
+                    .catch((err) => {
+                      logger.error(err);
+                      exitCallback();
+                    });
+              }
+            }
           }
         }
       });
