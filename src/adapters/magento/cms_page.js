@@ -18,14 +18,16 @@ class PageAdapter extends AbstractMagentoAdapter {
 
     getSourceData(context) {
         if (this.use_paging) {
-            return this.api.pages.list('&searchCriteria[currentPage]=' + this.page + '&searchCriteria[pageSize]=' + this.page_size + (query ? '&' + query : '')).catch((err) => {
-                throw new Error(err);
-            });
+            return this.api.pages.list('&searchCriteria[currentPage]=' + this.page + '&searchCriteria[pageSize]=' + this.page_size + (query ? '&' + query : ''))
+                .catch((err) => {
+                    throw new Error(err);
+                });
         }
 
-        return this.api.pages.list().catch((err) => {
-            throw new Error(err);
-        });
+        return this.api.pages.list()
+            .catch((err) => {
+                throw new Error(err);
+            });
     }
 
     prepareItems(items) {
@@ -48,7 +50,7 @@ class PageAdapter extends AbstractMagentoAdapter {
             if (item) {
                 item.type = 'cms_page'
             }
-          
+
           return done(item);
         });
 

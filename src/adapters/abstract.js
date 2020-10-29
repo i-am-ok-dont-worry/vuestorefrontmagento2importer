@@ -238,10 +238,11 @@ class AbstractAdapter {
             if (this.use_paging && !this.isFederated()) {
               if (this.page >= (this.page_count)) {
                 logger.info('All pages processed!');
-                this.rerunUnstable();
-                this.db.close();
-
-                this.onDone(this);
+                this.rerunUnstable()
+                    .then(() => {
+                      this.db.close();
+                      this.onDone(this);
+                    });
               } else {
                 // Increment page and rerun
                 const context = this.getCurrentContext();

@@ -194,7 +194,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
   removeNonExistent = _handleBoolParam(removeNonExistent)
   initQueue = _handleBoolParam(initQueue)
 
-  let adapter = factory.getAdapter(adapterName, 'product_new');
+  let adapter = factory.getAdapter(adapterName, 'product');
 
   if (updatedAfter) {
     logger.info('Delta indexer started for', updatedAfter)
@@ -227,7 +227,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
 
       // TODO: separate the execution part to run in multi-tenant env
       queue.process('products', partition_count, (job, done) => {
-        let adapter = factory.getAdapter(adapterName, 'product_new');
+        let adapter = factory.getAdapter(adapterName, 'product');
         if (job && job.data.page && job.data.page_size) {
           logger.info(`Processing job: ${job.data.page}`);
 
@@ -253,7 +253,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
 
               if (removeNonExistent) {
                 logger.info('CleaningUp products!');
-                let adapter = factory.getAdapter(adapterName, 'product_new');
+                let adapter = factory.getAdapter(adapterName, 'product');
                 adapter.cleanUp(transaction_key);
               }
 

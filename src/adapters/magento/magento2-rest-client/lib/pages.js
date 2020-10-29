@@ -5,7 +5,7 @@ module.exports = function (restClient) {
 
     module.list = function (searchCriteria) {
         var query = 'searchCriteria=' + searchCriteria;
-        var endpointUrl = util.format('/snowdog/cmsPage/search?%s', query);
+        var endpointUrl = util.format('/cmsPage/search?%s', query);
         return restClient.get(endpointUrl);
     }
 

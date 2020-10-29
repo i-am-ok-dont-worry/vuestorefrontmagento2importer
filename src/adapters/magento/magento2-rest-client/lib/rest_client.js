@@ -34,10 +34,9 @@ module.exports.RestClient = function (options) {
                 json: true,
                 body: request_data.body,
             }, function (error, response, body) {
-                // logger.debug('Response received.');
                 if (error) {
                     logger.error('Error occured: ' + error);
-                    reject(error);
+                    reject({ ...error, response });
                     return;
                 } else if (!httpCallSucceeded(response)) {
                     var errorMessage = 'HTTP ERROR ' + response.statusCode + ' ' + request_data.url;
@@ -47,7 +46,7 @@ module.exports.RestClient = function (options) {
                     }
 
                     logger.error('API call failed: ' + errorMessage);
-                    reject(errorMessage);
+                    reject({ errorMessage, ...response });
                 }
 //                var bodyCamelized = humps.camelizeKeys(body);
 //                resolve(bodyCamelized);
