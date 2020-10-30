@@ -96,39 +96,41 @@ class ProductAdapter extends AbstractMagentoAdapter {
             this.getProductSourceData(context)
                 .then((result) => {
                   // download rendered list items
-                  const products = result.items
-                  let skus = products.map((p) => { return p.sku })
+                  const products = result.items;
+                  let skus = products.map((p) => { return p.sku });
 
                   if (products.length === 1) { // single product - download child data
                     const childSkus = _.flattenDeep(products.map((p) => { return (p.configurable_children) ? p.configurable_children.map((cc) => { return cc.sku }) : null }))
-                    skus = _.union(skus, childSkus)
+                    skus = _.union(skus, childSkus);
                   }
+
                   const query = '&searchCriteria[filter_groups][0][filters][0][field]=sku&' +
                   'searchCriteria[filter_groups][0][filters][0][value]=' + encodeURIComponent(skus.join(',')) + '&' +
                   'searchCriteria[filter_groups][0][filters][0][condition_type]=in';
 
                   this.api.products.renderList(query, this.config.magento.storeId, this.config.magento.currencyCode)
                       .then(renderedProducts => {
-                        context.renderedProducts = renderedProducts
+                        context.renderedProducts = renderedProducts;
                         for (let product of result.items) {
                           const productAdditionalInfo = renderedProducts.items.find(p => p.id === product.id)
 
                           if (productAdditionalInfo && productAdditionalInfo.price_info) {
-                            delete productAdditionalInfo.price_info.formatted_prices
-                            delete productAdditionalInfo.price_info.extension_attributes
+                            delete productAdditionalInfo.price_info.formatted_prices;
+                            delete productAdditionalInfo.price_info.extension_attributes;
                             // delete productAdditionalInfo.price_info.special_price
-                            product = Object.assign(product, productAdditionalInfo.price_info)
+                            product = Object.assign(product, productAdditionalInfo.price_info);
 
                             if (product.final_price < product.price) {
-                              product.special_price = product.final_price
+                              product.special_price = product.final_price;
                             }
 
                             if (this.config.product.renderCatalogRegularPrices) {
-                              product.price = product.regular_price
+                              product.price = product.regular_price;
                             }
                           }
                         }
-                        resolve(result)
+
+                        resolve(result);
                       });
 
                 })
@@ -156,6 +158,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
   }
 
   getProductSourceData(context) {
+    context.page = 1;
     let query = this.getFilterQuery(context);
     let searchCriteria = '&searchCriteria[currentPage]=%d&searchCriteria[pageSize]=%d';
 
@@ -164,19 +167,21 @@ class ProductAdapter extends AbstractMagentoAdapter {
                         '&searchCriteria[filterGroups][0][filters][0][value]=1';
     }
 
-    if(typeof context.stock_sync !== 'undefined')
+    if (typeof context.stock_sync !== 'undefined') {
       this.stock_sync = context.stock_sync;
+    }
 
-    if(typeof context.parent_sync !== 'undefined')
-    {
+    if (typeof context.parent_sync !== 'undefined') {
       this.parent_sync = context.parent_sync;
     }
 
-    if(typeof context.category_sync !== 'undefined')
+    if (typeof context.category_sync !== 'undefined') {
       this.category_sync = context.category_sync;
+    }
 
-    if(typeof context.configurable_sync !== 'undefined')
+    if (typeof context.configurable_sync !== 'undefined') {
       this.configurable_sync = context.configurable_sync;
+    }
 
     if (context.for_total_count) { // get total counts
       return this.api.products.list(util.format(searchCriteria, 1, 1)).catch((err) => {
@@ -190,16 +195,24 @@ class ProductAdapter extends AbstractMagentoAdapter {
       this.page_size = context.page_size
       if (!context.use_paging) this.page_count = 1; // process only one page - used for partitioning purposes
 
-      return this.api.products.list(util.format(searchCriteria, context.page, context.page_size) + (query ? '&' + query : '')).catch((err) => {
-        throw new Error(err);
-      });
+      return this.api.products.list(util.format(searchCriteria, context.page, context.page_size) + (query ? '&' + query : ''))
+          .then((res) => {
+            return res;
+          })
+          .catch((err) => {
+            throw new Error(err);
+          });
 
     } else if (this.use_paging) {
       this.is_federated = false; // federated execution is not compliant with paging
       logger.debug(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : ''));
-      return this.api.products.list(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : '')).catch((err) => {
-        throw new Error(err);
-      });
+      return this.api.products.list(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : ''))
+          .catch((err) => {
+            throw new Error(err);
+          })
+          .then((res) => {
+            return res;
+          });
     } else {
       return this.api.products.list().catch((err) => {
         throw new Error(err);

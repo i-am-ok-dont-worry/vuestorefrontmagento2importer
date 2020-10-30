@@ -46,7 +46,7 @@ module.exports.RestClient = function (options) {
                     }
 
                     logger.error('API call failed: ' + errorMessage);
-                    reject({ errorMessage, ...response });
+                    reject({ errorMessage, ...(body.message && { rawMessage: body.message }), statusCode: response.statusCode, requestUrl: request_data.url });
                 }
 //                var bodyCamelized = humps.camelizeKeys(body);
 //                resolve(bodyCamelized);
