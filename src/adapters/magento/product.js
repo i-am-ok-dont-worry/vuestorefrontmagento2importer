@@ -158,7 +158,6 @@ class ProductAdapter extends AbstractMagentoAdapter {
   }
 
   getProductSourceData(context) {
-    context.page = 1;
     let query = this.getFilterQuery(context);
     let searchCriteria = '&searchCriteria[currentPage]=%d&searchCriteria[pageSize]=%d';
 
