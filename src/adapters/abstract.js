@@ -131,7 +131,7 @@ class AbstractAdapter {
   cleanUp(transaction_key) {
     this.db.connect(() => {
       logger.info(`Cleaning up with tsk = ${transaction_key}`);
-      this.db.cleanupByTransactionkey(this.getCollectionName(), transaction_key);
+      this.db.cleanupByTransactionkey(this.getCollectionName(true), transaction_key);
     });
   }
 
@@ -197,7 +197,7 @@ class AbstractAdapter {
    */
   appendItemToQueue (item) {
     const taskTransactionKey = this.getCurrentContext().transaction_key;
-    queue.createJob(`mage2-import-job-${this.getCollectionName()}`, { ...item, title: item.name || item.id })
+    queue.createJob(`mage2-import-job-${this.getCollectionName(true)}`, { ...item, title: item.name || item.id })
         .attempts(3)
         .backoff( { delay: 60 * 1000, type:'fixed' })
         .save((err) => {
@@ -214,7 +214,7 @@ class AbstractAdapter {
    */
   processBulk () {
     this.is_running = true;
-    queue.process(`mage2-import-job-${this.getCollectionName()}`, Number(this.current_context.maxActiveJobs || 10), (job, done) => {
+    queue.process(`mage2-import-job-${this.getCollectionName(true)}`, Number(this.current_context.maxActiveJobs || 10), (job, done) => {
       const item = job.data;
       this.preProcessItem(item)
           .then((item) => {
@@ -224,7 +224,7 @@ class AbstractAdapter {
 
             // Invalidate document in elasticsearch and update it once again
             if (this.update_document) {
-              this.db.updateDocument(this.getCollectionName(), this.normalizeDocumentFormat(item), (err, res) => {
+              this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), (err, res) => {
                 if (err) {
                   logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
                   process.exit(0);
@@ -244,7 +244,7 @@ class AbstractAdapter {
     });
 
     queue.on('job complete', (jobId) => {
-      queue.inactiveCount(`mage2-import-job-${this.getCollectionName()}`, (err, inactive) => {
+      queue.inactiveCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, inactive) => {
         logger.info(`Completed: ${this.index}. Remaining: ${inactive}`);
         if (inactive === 0) {
           if (!this.use_paging) {

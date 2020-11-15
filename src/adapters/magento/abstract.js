@@ -15,8 +15,8 @@ class AbstractMagentoAdapter extends AbstractAdapter{
     throw new Error('getEntityType must be implemented');
   }
 
-  getCollectionName(){
-    if (this['getSwappedEntityType'] && typeof this['getSwappedEntityType'] === 'function') { return this['getSwappedEntityType'](); }
+  getCollectionName(useSwapped = false){
+    if (useSwapped && this['getSwappedEntityType'] && typeof this['getSwappedEntityType'] === 'function') { return this['getSwappedEntityType'](); }
     return this.getEntityType();
   }
 
