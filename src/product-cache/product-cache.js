@@ -24,7 +24,7 @@ class ProductCache {
 
     /**
      * Returns list of cached product skus
-     * @returns Promise<{ sku: string }> of all skus
+     * @returns Promise<{ sku: string, id: string }> of all skus
      */
     getProductSkus() {
         return new Promise((resolve, reject) => {
@@ -93,7 +93,7 @@ class ProductCache {
 
     /**
      * Recreates product cache from ElasticSearch
-     * @returns {Promise<string[]>}
+     * @returns {Promise<{ sku: string, id: string }>}
      */
     recreateFromElasticSearch (collectionName = 'product_new') {
         return new Promise((resolve) => {
