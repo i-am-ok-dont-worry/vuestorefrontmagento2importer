@@ -10,7 +10,7 @@ class StockAdapter extends AbstractMagentoAdapter {
     }
 
     getEntityType () {
-        return 'stocks';
+        return 'stock';
     }
 
     getSwappedEntityType () {
