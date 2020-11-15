@@ -190,11 +190,27 @@ function cleanup(adapterName, cleanupType, transactionKey) {
   }
 }
 
+function reindexStocks(adapterName, skus, page = null, maxActiveJobs = 1) {
+  return new Promise((resolve, reject) => {
+    let adapter = factory.getAdapter(adapterName, 'stocks');
+    adapter.run({
+      skus,
+      page,
+      maxActiveJobs,
+      done_callback: () => {
+        logger.info('Task done! Exiting in 30s...');
+        setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
+        resolve();
+      }
+    });
+  });
+}
+
 function reindexProducts(adapterName, removeNonExistent, partitions, partitionSize, initQueue, skus, updatedAfter = null, page = null, maxActiveJobs) {
   removeNonExistent = _handleBoolParam(removeNonExistent)
   initQueue = _handleBoolParam(initQueue)
 
-  let adapter = factory.getAdapter(adapterName, 'product');
+  let adapter = factory.getAdapter(adapterName, 'product_new');
 
   if (updatedAfter) {
     logger.info('Delta indexer started for', updatedAfter)
@@ -226,8 +242,8 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
       }
 
       // TODO: separate the execution part to run in multi-tenant env
-      queue.process('products', partition_count, (job, done) => {
-        let adapter = factory.getAdapter(adapterName, 'product');
+      queue.process('products_new', partition_count, (job, done) => {
+        let adapter = factory.getAdapter(adapterName, 'product_new');
         if (job && job.data.page && job.data.page_size) {
           logger.info(`Processing job: ${job.data.page}`);
 
@@ -253,7 +269,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
 
               if (removeNonExistent) {
                 logger.info('CleaningUp products!');
-                let adapter = factory.getAdapter(adapterName, 'product');
+                let adapter = factory.getAdapter(adapterName, 'product_new');
                 adapter.cleanUp(transaction_key);
               }
 
@@ -408,6 +424,16 @@ program
   });
 
 program
+    .command('stocks')
+    .option('--adapter <adapter>', 'name of the adapter', 'magento')
+    .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', [])
+    .option('--page <page>', 'start from specific page', null)
+    .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
+    .action((cmd) => {
+        reindexStocks(cmd.adapter, cmd.skus, cmd.page, cmd.maxActiveJobs);
+    });
+
+program
   .command('productsdelta')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--partitions <partitions>', 'number of partitions', 1)
@@ -484,7 +510,7 @@ program
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .action(async (cmd) => {
     await reindexPages(cmd.adapter, cmd.removeNonExistent);
-  })
+  });
 
 program
   .on('command:*', () => {

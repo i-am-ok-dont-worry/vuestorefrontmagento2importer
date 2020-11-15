@@ -17,6 +17,7 @@ var productLinks = require('./lib/product_links');
 var reviews = require('./lib/reviews');
 var blocks = require('./lib/blocks');
 var pages = require('./lib/pages');
+var productsNew = require('./lib/products_new');
 
 const MAGENTO_API_VERSION = 'V1';
 
@@ -43,6 +44,7 @@ module.exports.Magento2Client = function (options) {
     instance.reviews = reviews(client);
     instance.blocks = blocks(client);
     instance.pages = pages(client);
+    instance.productsNew = productsNew(client);
 
     return instance;
 }

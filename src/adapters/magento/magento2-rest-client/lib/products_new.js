@@ -1,0 +1,19 @@
+var util = require('util');
+
+module.exports = function (restClient) {
+    var module = {};
+
+    module.list = function (searchCriteria) {
+        var query = 'searchCriteria=' + searchCriteria;
+        var endpointUrl = util.format('/products?%s', query);
+        return restClient.get(endpointUrl);
+    };
+
+    module.single = function (sku) {
+        const endpointUrl = util.format('/products/' + encodeURIComponent(sku));
+        return restClient.get(endpointUrl);
+    };
+
+    return module;
+}
+

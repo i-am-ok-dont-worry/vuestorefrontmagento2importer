@@ -191,6 +191,87 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
   }
 
   /**
+   * Returns sku's list of indexed products
+   * @param {string} collectionName
+   * @returns {Promise<{ id: string, sku: string }[]>}
+   */
+  async getProductSkus (collectionName = 'vue_storefront_catalog_product_new') {
+    let output = [];
+    let scrollId;
+    let scrollSize = 0;
+
+    const searchToPromise = (query) => new Promise((resolve, reject) => {
+      this.db.search(query, (err, res) => {
+        scrollId = res.body['_scroll_id'];
+        scrollSize = res.body['hits']['total']['value'];
+
+        if (err) { reject(err); }
+        if (res.body.hits) {
+          resolve(res.body);
+        } else {
+          reject('Invalid Elastic response');
+        }
+      });
+    });
+
+    const mapEsResults = (hits) => {
+      return hits.map(obj => {
+        try {
+          return { id: obj._source.id, sku: obj._source.sku }; // obj._source.sku;
+        } catch (e) {
+          return null;
+        }
+      }).filter(Boolean);
+    };
+
+    const scrollResults = () => new Promise((resolve, reject) => {
+      this.db.scroll({ scroll_id: scrollId, scroll: '2m' }, (err, res) => {
+        if (err) { reject(err); }
+        else {
+          try {
+            scrollId = res.body['_scroll_id'];
+            scrollSize = res.body['hits']['hits'].length;
+            resolve(mapEsResults(res.body.hits.hits));
+          } catch (e) {
+            resolve([]);
+          }
+        }
+      });
+    });
+
+    const searchWithPagination = async (size = 10000) => {
+      const searchQueryBody = {
+        index: this.getPhysicalIndexName(collectionName, this.config),
+        scroll: '2m',
+        size,
+        body: {
+          query: { exists: { field: 'sku' } },
+          sort: [{ "id": "asc" }],
+        }
+      };
+
+      try {
+       const { hits } = await searchToPromise(searchQueryBody);
+       const docs = mapEsResults(hits.hits);
+
+       return { docs };
+      } catch (e) {
+        throw new Error('Unable to fetch product info');
+      }
+    };
+
+    // Fetch first 10000 results then change fetch method to ES scroll
+    const { docs } = await searchWithPagination();
+    output = [...docs];
+
+    while (scrollSize > 0) {
+      output = [...output, ...await scrollResults()];
+    }
+
+    return output;
+  }
+
+  /**
    * Connect / prepare driver
    * @param {Function} done callback to be called after connection is established
    */
