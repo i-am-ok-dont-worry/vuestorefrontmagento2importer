@@ -426,7 +426,7 @@ program
 program
     .command('stocks')
     .option('--adapter <adapter>', 'name of the adapter', 'magento')
-    .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', [])
+    .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', (value) => value.split(','))
     .option('--page <page>', 'start from specific page', null)
     .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
     .action((cmd) => {

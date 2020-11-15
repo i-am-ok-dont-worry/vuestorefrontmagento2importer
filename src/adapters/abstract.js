@@ -51,6 +51,19 @@ class AbstractAdapter {
     this.validateConfig(this.config);
 
     this.tasks_count = 0;
+
+    process.on('SIGINT', () => {
+      this.reindexUtils.removeJob(this.getCollectionName());
+      process.exit(0);
+    });
+    process.on('SIGUSR1', () => {
+      this.reindexUtils.removeJob(this.getCollectionName());
+      process.exit(0);
+    });
+    process.on('SIGUSR2', () => {
+      this.reindexUtils.removeJob(this.getCollectionName());
+      process.exit(0);
+    });
   }
 
   isValidFor(entity_type) {

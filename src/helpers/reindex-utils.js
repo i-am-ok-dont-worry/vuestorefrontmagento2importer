@@ -67,6 +67,18 @@ class ReindexUtils {
             });
         });
     }
+
+    removeJob(entityType) {
+        return new Promise((resolve, reject) => {
+            this._redisClient.del(ReindexUtils.createReindexKey(entityType), (err) => {
+                if (err) {
+                    reject(`Cannot delete job for entity '${entity}'`);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
 }
 
 module.exports = ReindexUtils;
