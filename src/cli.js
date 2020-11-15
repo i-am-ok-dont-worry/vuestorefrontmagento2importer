@@ -192,7 +192,7 @@ function cleanup(adapterName, cleanupType, transactionKey) {
 
 function reindexStocks(adapterName, skus, page = null, maxActiveJobs = 1) {
   return new Promise((resolve, reject) => {
-    let adapter = factory.getAdapter(adapterName, 'stocks');
+    let adapter = factory.getAdapter(adapterName, 'stock');
     adapter.run({
       skus,
       page,
