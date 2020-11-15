@@ -47,7 +47,7 @@ class ProductcategoriesAdapter extends AbstractMagentoAdapter {
 
   /**
    * Process category link product/category
-   * @param {Object} result 
+   * @param {Object} result
    */
   _storeCatLinks(item, result) {
     let index = 0;
@@ -56,7 +56,7 @@ class ProductcategoriesAdapter extends AbstractMagentoAdapter {
     switch (this.mode) {
       case ProductCategoriesModes.SEPARATE_ELASTICSEARCH: {
         for (let catLink of result) {
-          // logger.debug('(' +index +'/' + length +  ') Storing categoryproduct link for ' + catLink.sku +' - ' + catLink.category_id);
+          // logger.info('(' +index +'/' + length +  ') Storing categoryproduct link for ' + catLink.sku +' - ' + catLink.category_id);
           catLink.id = catLink.category_id * MAX_PRODUCTS_IN_CAT + index;
 
           index++;
@@ -64,19 +64,19 @@ class ProductcategoriesAdapter extends AbstractMagentoAdapter {
           catLink = this.normalizeDocumentFormat(catLink);
         }
 
-        logger.debug('Performing bulk update...');
-        this.db.updateDocumentBulk('productcategories', result); // TODO: add support for BULK operations and DELETE 
+        logger.info('Performing bulk update...');
+        this.db.updateDocumentBulk('productcategories', result); // TODO: add support for BULK operations and DELETE
       }
 
       case ProductCategoriesModes.UPDATE_CATEGORY: {
         // TODO: update products to set valid category
         item.products = result;
         this.db.updateDocument('category', item);
-        logger.debug(`Updating category object for ${item.id}`);
+        logger.info(`Updating category object for ${item.id}`);
       }
 
       default: { // update in redis = ProductCategoriesModes.SEPARATE_REDIS
-        logger.debug(`Storing category assigments in REDIS cache for ${item.id}`);
+        logger.info(`Storing category assigments in REDIS cache for ${item.id}`);
 
         for (let catLink of result) {
           const key = util.format(CacheKeys.CACHE_KEY_PRODUCT_CATEGORIES_TEMPORARY, catLink.sku); // store under SKU of the product the categories assigned
@@ -92,7 +92,7 @@ class ProductcategoriesAdapter extends AbstractMagentoAdapter {
 
   /**
    * Get the product category links for this specific category and update the products
-   * @param {Object} item 
+   * @param {Object} item
    */
   preProcessItem(item) {
     return new Promise((done, reject) => {
@@ -115,9 +115,9 @@ class ProductcategoriesAdapter extends AbstractMagentoAdapter {
     logger.info('Renaming the cache key to production! ');
 
     for(let sku of this._productHisto){
-      const origKey = util.format(CacheKeys.CACHE_KEY_PRODUCT_CATEGORIES_TEMPORARY, sku); 
-      const destKey = util.format(CacheKeys.CACHE_KEY_PRODUCT_CATEGORIES, sku); 
-      // logger.debug(util.format('Moving %s to %s', origKey, destKey));
+      const origKey = util.format(CacheKeys.CACHE_KEY_PRODUCT_CATEGORIES_TEMPORARY, sku);
+      const destKey = util.format(CacheKeys.CACHE_KEY_PRODUCT_CATEGORIES, sku);
+      // logger.info(util.format('Moving %s to %s', origKey, destKey));
 
       this.cache.rename(origKey, destKey);
     }

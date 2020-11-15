@@ -24,7 +24,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
     this.db = null;
     this.validateConfig(this.config);
 
-    logger.debug('Elasticsearch module initialized!');
+    logger.info('Elasticsearch module initialized!');
     this.updateDocument.bind(this);
   }
 
@@ -174,7 +174,6 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
       });
 
       if ((index % bulkSize) == 0) {
-        logger.debug('Splitting bulk query ' + index);
         this.db.bulk({
           body: requests
         }, function (error, response) {

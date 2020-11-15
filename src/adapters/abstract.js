@@ -215,7 +215,7 @@ class AbstractAdapter {
         .backoff( { delay: 60 * 1000, type:'fixed' })
         .save((err) => {
           if (err) {
-            logger.debug('Import job cannot be queued within redis. Terminating...');
+            logger.info('Import job cannot be queued within redis. Terminating...');
           } else {
             logger.info(`Job ${item.id || taskTransactionKey} queued to further process`);
           }
@@ -244,7 +244,7 @@ class AbstractAdapter {
                 }
               });
             } else {
-              logger.debug('Skipping database update');
+              logger.info('Skipping database update');
             }
 
             this.index++;
@@ -284,7 +284,7 @@ class AbstractAdapter {
                   context.page = ++this.page;
                 }
 
-                logger.debug(`Switching page to ${this.page}`);
+                logger.info(`Switching page to ${this.page}`);
                 let exitCallback = this.onDone;
                 this.getSourceData(context)
                     .then(this.processItems.bind(this))

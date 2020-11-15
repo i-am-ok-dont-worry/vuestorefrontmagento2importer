@@ -204,7 +204,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
 
     } else if (this.use_paging) {
       this.is_federated = false; // federated execution is not compliant with paging
-      logger.debug(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : ''));
+      logger.info(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : ''));
       return this.api.products.list(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : ''))
           .catch((err) => {
             throw new Error(err);
@@ -873,7 +873,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
                   }
                 });
               } else {
-                logger.debug('Skipping database update');
+                logger.info('Skipping database update');
                 done();
               }
             })

@@ -201,7 +201,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
       this.page_size = context.page_size
       if (!context.use_paging) this.page_count = 1; // process only one page - used for partitioning purposes
 
-      logger.debug(`Using specific paging options from adapter context: ${context.page} / ${context.page_size}`);
+      logger.info(`Using specific paging options from adapter context: ${context.page} / ${context.page_size}`);
 
       return this.api.products.list(util.format(searchCriteria, context.page, context.page_size) + (query ? '&' + query : '')).catch((err) => {
         throw new Error(err);
@@ -209,7 +209,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
 
     } else if (this.use_paging) {
       this.is_federated = false; // federated execution is not compliant with paging
-      logger.debug(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : ''));
+      logger.info(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : ''));
       return this.api.products.list(util.format(searchCriteria, this.page, this.page_size) + (query ? '&' + query : '')).catch((err) => {
         throw new Error(err);
       });
@@ -348,7 +348,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
                   item.stock.is_in_stock = isSalable;
 
                   const key = util.format(CacheKeys.CACHE_KEY_STOCKITEM, item.id);
-                  logger.debug(`Storing stock data to cache under: ${key}`);
+                  logger.info(`Storing stock data to cache under: ${key}`);
                   this.cache.set(key, JSON.stringify(item.stock));
 
                   return item;
@@ -356,7 +356,7 @@ class ProductAdapter extends AbstractMagentoAdapter {
               })
             } else {
               const key = util.format(CacheKeys.CACHE_KEY_STOCKITEM, item.id);
-              logger.debug(`Storing stock data to cache under: ${key}`);
+              logger.info(`Storing stock data to cache under: ${key}`);
               this.cache.set(key, JSON.stringify(result));
 
               return item;

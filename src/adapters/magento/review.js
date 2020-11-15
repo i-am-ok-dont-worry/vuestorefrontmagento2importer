@@ -57,7 +57,7 @@ class ReviewAdapter extends AbstractMagentoAdapter {
   }
 
   preProcessItem(item) {
-    logger.debug(item);
+    logger.info(item);
     //
     return new Promise((done, reject) => {
       if (item) {
@@ -66,7 +66,7 @@ class ReviewAdapter extends AbstractMagentoAdapter {
         delete item.entity_pk_value;
         delete item.ratings;
 
-        logger.debug(`Review ${item.id}`);
+        logger.info(`Review ${item.id}`);
       }
 
       return done(item);
