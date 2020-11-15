@@ -4,6 +4,7 @@ const AdapterFactory = require('./factory');
 const Redis = require('redis');
 const kue = require('kue');
 const queue = kue.createQueue();
+const ReindexUtils = require('../helpers/reindex-utils');
 
 class AbstractAdapter {
 
@@ -14,6 +15,7 @@ class AbstractAdapter {
 
   constructor(app_config) {
     this.config = app_config;
+    this.reindexUtils = new ReindexUtils(app_config);
 
     let factory = new AdapterFactory(app_config);
     this.db = factory.getAdapter('nosql', app_config.db.driver);
@@ -77,6 +79,16 @@ class AbstractAdapter {
       this.current_context.transaction_key = new Date().getTime(); // the key used to filter out records NOT ADDED by this import
 
     this.db.connect(async () => {
+
+      // Check if reindex can run
+      const { status } = await this.reindexUtils.getReindexStatus(this.getCollectionName());
+      if (status === ReindexUtils.JobStatus.PENDING) {
+        logger.info('Reindex job is already pending');
+        process.exit(1);
+      } else {
+        await this.reindexUtils.setReindexStatus(this.getCollectionName(), ReindexUtils.JobStatus.PENDING);
+      }
+
       logger.info('Connected correctly to server');
       logger.info(`TRANSACTION KEY = ${this.current_context.transaction_key}`);
 
@@ -121,6 +133,12 @@ class AbstractAdapter {
       logger.info(`Cleaning up with tsk = ${transaction_key}`);
       this.db.cleanupByTransactionkey(this.getCollectionName(), transaction_key);
     });
+  }
+
+  async onFinish() {
+    this.db.close();
+    await this.reindexUtils.setCleanupData(this.getCollectionName());
+    await this.reindexUtils.setReindexStatus(this.getCollectionName(), ReindexUtils.JobStatus.DONE);
   }
 
   prepareItems(items) {
@@ -179,7 +197,7 @@ class AbstractAdapter {
    */
   appendItemToQueue (item) {
     const taskTransactionKey = this.getCurrentContext().transaction_key;
-    queue.createJob('mage2-import-job', { ...item, title: item.name || item.id })
+    queue.createJob(`mage2-import-job-${this.getCollectionName()}`, { ...item, title: item.name || item.id })
         .attempts(3)
         .backoff( { delay: 60 * 1000, type:'fixed' })
         .save((err) => {
@@ -196,7 +214,7 @@ class AbstractAdapter {
    */
   processBulk () {
     this.is_running = true;
-    queue.process('mage2-import-job', Number(this.current_context.maxActiveJobs || 10), (job, done) => {
+    queue.process(`mage2-import-job-${this.getCollectionName()}`, Number(this.current_context.maxActiveJobs || 10), (job, done) => {
       const item = job.data;
       this.preProcessItem(item)
           .then((item) => {
@@ -226,12 +244,12 @@ class AbstractAdapter {
     });
 
     queue.on('job complete', (jobId) => {
-      queue.inactiveCount('mage2-import-job', (err, inactive) => {
+      queue.inactiveCount(`mage2-import-job-${this.getCollectionName()}`, (err, inactive) => {
         logger.info(`Completed: ${this.index}. Remaining: ${inactive}`);
         if (inactive === 0) {
           if (!this.use_paging) {
             logger.info('Completed!');
-            this.db.close();
+            this.onFinish();
             this.onDone(this);
           } else {
 
@@ -240,7 +258,7 @@ class AbstractAdapter {
                 logger.info('All pages processed!');
                 this.rerunUnstable()
                     .then(() => {
-                      this.db.close();
+                      this.onFinish();
                       this.onDone(this);
                     });
               } else {

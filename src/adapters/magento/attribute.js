@@ -22,10 +22,10 @@ class AttributeAdapter extends AbstractMagentoAdapter {
   prepareItems(items) {
     if(!items)
       return items;
- 
+
     if (items.total_count)
       this.total_count = items.total_count;
-    
+
     if(items.items)
       items = items.items; // this is an exceptional behavior for Magento2 api  for attributes
 
