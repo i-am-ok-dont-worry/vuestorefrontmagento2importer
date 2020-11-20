@@ -42,7 +42,7 @@ const reindexAttributes = (adapterName, removeNonExistent, ids) => {
   })
 }
 
-const reindexReviews = (adapterName, removeNonExistent) => {
+const reindexReviews = (adapterName, removeNonExistent, ids) => {
   removeNonExistent = _handleBoolParam(removeNonExistent)
 
   return new Promise((resolve, reject) => {
@@ -53,6 +53,7 @@ const reindexReviews = (adapterName, removeNonExistent) => {
 
     adapter.run({
       transaction_key: tsk,
+      ids,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
@@ -78,6 +79,7 @@ const reindexBlocks = (adapterName, removeNonExistent, ids) => {
 
     adapter.run({
       transaction_key: tsk,
+      ids,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
@@ -102,6 +104,7 @@ const reindexPages = (adapterName, removeNonExistent, ids) => {
     let tsk = new Date().getTime();
     adapter.run({
       transaction_key: tsk,
+      ids,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
@@ -115,7 +118,7 @@ const reindexPages = (adapterName, removeNonExistent, ids) => {
   })
 }
 
-const reindexCategories = (adapterName, removeNonExistent, extendedCategories, generateUniqueUrlKeys, maxActiveJobs) => {
+const reindexCategories = (adapterName, removeNonExistent, extendedCategories, generateUniqueUrlKeys, maxActiveJobs, ids) => {
   removeNonExistent = _handleBoolParam(removeNonExistent)
   extendedCategories = _handleBoolParam(extendedCategories)
   generateUniqueUrlKeys = (_handleBoolParam(generateUniqueUrlKeys))
@@ -129,6 +132,7 @@ const reindexCategories = (adapterName, removeNonExistent, extendedCategories, g
       extendedCategories: extendedCategories,
       generateUniqueUrlKeys: generateUniqueUrlKeys,
       maxActiveJobs,
+      ids,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
@@ -142,7 +146,7 @@ const reindexCategories = (adapterName, removeNonExistent, extendedCategories, g
   });
 }
 
-const reindexTaxRules = (adapterName, removeNonExistent) => {
+const reindexTaxRules = (adapterName, removeNonExistent, ids) => {
   removeNonExistent = _handleBoolParam(removeNonExistent)
 
   return new Promise((resolve, reject) => {
@@ -151,6 +155,7 @@ const reindexTaxRules = (adapterName, removeNonExistent) => {
 
     adapter.run({
       transaction_key: tsk,
+      ids,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
@@ -177,13 +182,14 @@ const reindexProductCategories = (adapterName) => {
   });
 }
 
-function reindexStocks(adapterName, skus, page = null, maxActiveJobs = 1) {
+function reindexStocks(adapterName, skus, page = null, maxActiveJobs = 1, ids) {
   return new Promise((resolve, reject) => {
     let adapter = factory.getAdapter(adapterName, 'stock');
     adapter.run({
       skus,
       page,
       maxActiveJobs,
+      ids,
       done_callback: () => {
         // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
@@ -193,7 +199,7 @@ function reindexStocks(adapterName, skus, page = null, maxActiveJobs = 1) {
   });
 }
 
-function reindexProducts(adapterName, removeNonExistent, partitions, partitionSize, initQueue, skus, updatedAfter = null, page = null, maxActiveJobs) {
+function reindexProducts(adapterName, removeNonExistent, partitions, partitionSize, initQueue, skus, updatedAfter = null, page = null, maxActiveJobs, ids) {
   removeNonExistent = _handleBoolParam(removeNonExistent)
   initQueue = _handleBoolParam(initQueue)
 
@@ -241,6 +247,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
             parent_sync: job.data.updatedAfter !== null,
             updated_after: job.data.updatedAfter,
             maxActiveJobs,
+            ids,
             done_callback: () => {
               logger.info('Task done!');
               return done();
@@ -278,6 +285,7 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
       transaction_key: tsk,
       parent_sync: updatedAfter !== null,
       maxActiveJobs,
+      ids,
       done_callback: () => {
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
@@ -396,7 +404,7 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 6)
   .option('--ids <ids>', 'categories ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexCategories(cmd.adapter, cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs);
+    await reindexCategories(cmd.adapter, cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs, cmd.ids);
   });
 
 program
@@ -419,9 +427,9 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
   .action((cmd) => {
     if (cmd.updatedAfter) {
-      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, new Date(cmd.updatedAfter), cmd.page, cmd.maxActiveJobs);
+      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, new Date(cmd.updatedAfter), cmd.page, cmd.maxActiveJobs, cmd.ids);
     } else {
-      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page, cmd.maxActiveJobs);
+      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page, cmd.maxActiveJobs, cmd.ids);
     }
   });
 
@@ -433,7 +441,7 @@ program
     .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
     .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
     .action((cmd) => {
-        reindexStocks(cmd.adapter, cmd.skus, cmd.page, cmd.maxActiveJobs);
+        reindexStocks(cmd.adapter, cmd.skus, cmd.page, cmd.maxActiveJobs, cmd.ids);
     });
 
 program
@@ -443,7 +451,7 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexReviews(cmd.adapter, cmd.removeNonExistent);
+    await reindexReviews(cmd.adapter, cmd.removeNonExistent, cmd.ids);
   })
 
 program
@@ -453,7 +461,7 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexTaxRules(cmd.adapter, cmd.removeNonExistent);
+    await reindexTaxRules(cmd.adapter, cmd.removeNonExistent, cmd.ids);
   })
 
 /**
@@ -466,7 +474,7 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', (value) => value.split(','))
   .option('--ids <ids>', 'blocks ids', 1)
   .action(async (cmd) => {
-    await reindexBlocks(cmd.adapter, cmd.removeNonExistent);
+    await reindexBlocks(cmd.adapter, cmd.removeNonExistent, cmd.ids);
   })
 
 program
@@ -475,7 +483,7 @@ program
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--ids <ids>', 'pages ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexPages(cmd.adapter, cmd.removeNonExistent);
+    await reindexPages(cmd.adapter, cmd.removeNonExistent, cmd.ids);
   });
 
 program

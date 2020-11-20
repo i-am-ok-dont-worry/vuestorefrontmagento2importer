@@ -44,6 +44,12 @@ class CategoryAdapter extends AbstractMagentoAdapter {
   getSourceData(context) {
     this.generateUniqueUrlKeys = context.generateUniqueUrlKeys;
     this.extendedCategories = context.extendedCategories;
+
+    if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
+      const promises = context.ids.map(id => this.api.categories.getSingle(id));
+      return Promise.all(promises);
+    }
+
     return this.api.categories.list();
   }
 
@@ -115,11 +121,6 @@ class CategoryAdapter extends AbstractMagentoAdapter {
 
     if (!Array.isArray(items))
       items = new Array(items);
-
-    const ctx = this.current_context;
-    if (ctx && ctx.hasOwnProperty('ids') && ctx.ids instanceof Array && ctx.ids.length > 0) {
-      return items.filter(item => ctx.ids.map(id => parseInt(id, 10)).includes(item.id));
-    }
 
     return items;
   }
