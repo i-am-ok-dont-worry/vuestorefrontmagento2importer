@@ -74,7 +74,7 @@ class ReindexExecutor {
     };
 
     constructor (env) {
-        this.env = Object.assign({}, getMagentoDefaultConfig(this.env.STORE_CODE || 1), env, process.env);
+        this.env = Object.assign({}, getMagentoDefaultConfig(process.env.STORE_CODE || 1), env, process.env);
     }
 
     run ({ entity, ids }) {
