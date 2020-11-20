@@ -21,6 +21,7 @@ class ReindexJobCreator {
 
     async createReindexJob ({ entity, ids, priority = 'normal' }) {
         if (!entity || entity.length === 0) { throw new Error(`Invalid entity argument. Entity must be one of following: ${Object.values(EntityType).join(', ')}`); }
+        if (!ids || !(ids instanceof Array) || ids.length === 0) { throw new Error(`Invalid ids argument. Argument must be an array`); }
         if (!Object.values(EntityType).includes(entity)) { throw new Error('Entity type not supported'); }
         if (priority && !Object.keys(ReindexJobCreator.Priority).includes(priority)) { throw new Error('Priority not supported'); }
 
@@ -43,6 +44,7 @@ class ReindexJobCreator {
             };
 
             if (allowedJobs) { jobData.data.ids = allowedJobs }
+            if (ids.includes('full')) { jobData.data.ids = []; }
 
             const job = queue.create('i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
                 .removeOnComplete( true )
