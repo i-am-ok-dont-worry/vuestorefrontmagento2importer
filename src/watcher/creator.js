@@ -44,7 +44,7 @@ class ReindexJobCreator {
             };
 
             if (allowedJobs) { jobData.data.ids = allowedJobs }
-            if (ids.includes('full')) { jobData.data.ids = []; }
+            if (ids.includes('full')) { delete jobData.data.ids; }
 
             const job = queue.create('i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
                 .removeOnComplete( true )
