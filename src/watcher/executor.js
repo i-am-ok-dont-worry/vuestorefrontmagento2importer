@@ -1,5 +1,6 @@
 const { EntityType } = require('./entity');
 const spawn = require('child_process').spawn;
+const config = require('config');
 
 const _exec = Symbol();
 const _assertFunctionImplemented = Symbol();
@@ -15,6 +16,50 @@ const _handleReviewsReindex = Symbol();
 const _handleTaxRulesReindex = Symbol();
 const _handleStocksReindex = Symbol();
 
+function multiStoreConfig (apiConfig, storeCode) {
+    let confCopy = Object.assign({}, apiConfig)
+
+    if (storeCode && config.availableStores.indexOf(storeCode) >= 0) {
+        if (config.magento2['api_' + storeCode]) {
+            confCopy = Object.assign({}, config.magento2['api_' + storeCode]) // we're to use the specific api configuration - maybe even separate magento instance
+        }
+        confCopy.url = confCopy.url + '/' + storeCode
+    } else {
+        if (storeCode) {
+            console.error('Unavailable store code', storeCode)
+        }
+    }
+    return confCopy
+}
+
+function getMagentoDefaultConfig (storeCode) {
+    const apiConfig = multiStoreConfig(config.magento2.api, storeCode)
+    return {
+        TIME_TO_EXIT: 2000,
+        PRODUCTS_SPECIAL_PRICES: true,
+        SKIP_REVIEWS: false,
+        SKIP_CATEGORIES: false,
+        SKIP_PRODUCTCATEGORIES: false,
+        SKIP_ATTRIBUTES: false,
+        SKIP_TAXRULE: false,
+        SKIP_PRODUCTS: false,
+        PRODUCTS_EXCLUDE_DISABLED: config.catalog.excludeDisabledProducts,
+        MAGENTO_CONSUMER_KEY: apiConfig.consumerKey,
+        MAGENTO_CONSUMER_SECRET: apiConfig.consumerSecret,
+        MAGENTO_ACCESS_TOKEN: apiConfig.accessToken,
+        MAGENTO_ACCESS_TOKEN_SECRET: apiConfig.accessTokenSecret,
+        MAGENTO_URL: apiConfig.url,
+        MAGENTO_MSI_STOCK_ID: config.msi.defaultStockId,
+        REDIS_HOST: config.redis.host,
+        REDIS_PORT: config.redis.port,
+        REDIS_DB: config.redis.db,
+        REDIS_AUTH: config.redis.auth,
+        INDEX_NAME: config.elasticsearch.indices[0],
+        DATABASE_URL: `${config.elasticsearch.protocol}://${config.elasticsearch.host}:${config.elasticsearch.port}`,
+        ELASTICSEARCH_API_VERSION: config.elasticsearch.apiVersion
+    }
+}
+
 class ReindexExecutor {
     static execMap = {
         [EntityType.ATTRIBUTE]: _handleAttributesReindex,
@@ -29,7 +74,7 @@ class ReindexExecutor {
     };
 
     constructor (env) {
-        this.env = env;
+        this.env = Object.assign({}, getMagentoDefaultConfig(this.env.STORE_CODE || 1), env, process.env);
     }
 
     run ({ entity, ids }) {
@@ -75,7 +120,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'attributes',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -88,7 +133,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'pages',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -101,7 +146,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'blocks',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -113,7 +158,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'products',
-        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -125,7 +170,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'productcategories',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -137,7 +182,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'categories',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -149,7 +194,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'reviews',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -161,7 +206,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'taxrule',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -173,7 +218,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'stocks',
-        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: false, env: process.env });
+        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
