@@ -37,7 +37,7 @@ class JobManager {
      */
     saveJob ({ entity, ids, jobId }) {
         return new Promise((resolve, reject) => {
-            if (!ids) {
+            if (!ids || !(ids instanceof Array)) {
                 client.hmset(`i:${entity}:status`, 'full', jobId, (err) => {
                     if (err) { reject(); }
                     else {
@@ -103,7 +103,7 @@ class JobManager {
                     return;
                 }
 
-                if (!ids) {
+                if (!ids || !(ids instanceof Array)) {
                     ids = ['full'];
                 }
 
