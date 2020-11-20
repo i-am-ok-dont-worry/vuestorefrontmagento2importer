@@ -28,6 +28,18 @@ program.command('health')
         process.exit(0);
     });
 
+program.command('pause')
+    .action(() => {
+        const worker = new Worker();
+        worker.pause();
+    });
+
+program.command('resume')
+    .action(() => {
+        const worker = new Worker();
+        worker.resume();
+    });
+
 program.command('status')
     .option('--entity <entity>', 'Entity name')
     .option('--ids <ids>', 'Entity identifiers', (value) => value.split(','))

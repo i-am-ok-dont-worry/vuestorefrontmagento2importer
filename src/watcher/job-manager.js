@@ -1,6 +1,7 @@
 const { EntityType } = require('./entity');
+const config = require('../config');
 const Redis = require('redis');
-const client = Redis.createClient();
+const client = Redis.createClient({ ...config.redis });
 const difference = require('lodash/difference');
 const isEmpty = require('lodash/isEmpty');
 const kue = require('kue');
