@@ -373,7 +373,7 @@ program
     .option('--cleanupType <cleanupType>', 'type of the entity to clean up: product|category', 'product')
     .option('--transactionKey <transactionKey>', 'transaction key', 0)
     .action((cmd) => {
-      cleanup(cmd.adapter, cmd.cleanupType, cmd.transactionKey);
+      cleanup(cmd.adapter || 'magento', cmd.cleanupType, cmd.transactionKey);
     });
 
 program
@@ -386,7 +386,7 @@ program
     .option('--extendedCategories <extendedCategories>', 'extended categories import', true)
     .option('--generateUniqueUrlKeys <generateUniqueUrlKeys>', 'generate unique url_keys', true)
     .action((cmd) => {
-      fullReindex(cmd.adapter, true, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, cmd.extendedCategories, cmd.generateUniqueUrlKeys);
+      fullReindex(cmd.adapter || 'magento', true, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, cmd.extendedCategories, cmd.generateUniqueUrlKeys);
     });
 
 program
@@ -396,7 +396,7 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', (value) => value.split(','))
   .option('--ids <ids>', 'atrributes ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexAttributes(cmd.adapter, cmd.removeNonExistent, cmd.ids);
+    await reindexAttributes(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
   });
 
 program
@@ -408,14 +408,14 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 6)
   .option('--ids <ids>', 'categories ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexCategories(cmd.adapter, cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs, cmd.ids);
+    await reindexCategories(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs, cmd.ids);
   });
 
 program
   .command('productcategories')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .action((cmd) => {
-    reindexProductCategories(cmd.adapter);
+    reindexProductCategories(cmd.adapter || 'magento');
   });
 
 program
@@ -431,9 +431,9 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
   .action((cmd) => {
     if (cmd.updatedAfter) {
-      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, new Date(cmd.updatedAfter), cmd.page, cmd.maxActiveJobs, cmd.ids);
+      reindexProducts(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, new Date(cmd.updatedAfter), cmd.page, cmd.maxActiveJobs, cmd.ids);
     } else {
-      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page, cmd.maxActiveJobs, cmd.ids);
+      reindexProducts(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page, cmd.maxActiveJobs, cmd.ids);
     }
   });
 
@@ -445,7 +445,7 @@ program
     .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
     .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
     .action((cmd) => {
-        reindexStocks(cmd.adapter, cmd.skus, cmd.page, cmd.maxActiveJobs, cmd.ids);
+        reindexStocks(cmd.adapter || 'magento', cmd.skus, cmd.page, cmd.maxActiveJobs, cmd.ids);
     });
 
 program
@@ -455,7 +455,7 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexReviews(cmd.adapter, cmd.removeNonExistent, cmd.ids);
+    await reindexReviews(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
   })
 
 program
@@ -465,7 +465,7 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexTaxRules(cmd.adapter, cmd.removeNonExistent, cmd.ids);
+    await reindexTaxRules(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
   })
 
 /**
@@ -478,7 +478,7 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', (value) => value.split(','))
   .option('--ids <ids>', 'blocks ids', 1)
   .action(async (cmd) => {
-    await reindexBlocks(cmd.adapter, cmd.removeNonExistent, cmd.ids);
+    await reindexBlocks(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
   })
 
 program
@@ -487,7 +487,7 @@ program
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--ids <ids>', 'pages ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexPages(cmd.adapter, cmd.removeNonExistent, cmd.ids);
+    await reindexPages(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
   });
 
 program
@@ -513,7 +513,7 @@ program
         updatedAfter = null // full reindex
       }
 
-      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, updatedAfter);
+      reindexProducts(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, updatedAfter);
 
       try {
         indexMeta.lastIndexDate = new Date()
