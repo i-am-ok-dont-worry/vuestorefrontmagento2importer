@@ -5,6 +5,7 @@ const JobManager = require('./job-manager');
 
 
 const _createJobDataFunc = Symbol();
+const _shouldAbort = Symbol();
 class ReindexJobCreator {
     static Priority = {
         low: 10,
@@ -24,6 +25,10 @@ class ReindexJobCreator {
         if (priority && !Object.keys(ReindexJobCreator.Priority).includes(priority)) { throw new Error('Priority not supported'); }
 
         const allowedJobs = await this._jobManager.getUniqueJobs({ entity, ids });
+        const shouldAbort = this[_shouldAbort](ids, allowedJobs);
+
+        if (shouldAbort) { return Promise.resolve(); }
+
         return this[_createJobDataFunc]({ entity, ids, priority, allowedJobs });
     };
 
@@ -52,6 +57,21 @@ class ReindexJobCreator {
                 });
         });
     };
+
+    /**
+     * Returns true if job can be created
+     * @param ids
+     * @param allowedIds
+     */
+    [_shouldAbort] (ids, allowedIds) {
+        if (ids && ids instanceof Array && ids.length > 0) {
+            if (allowedIds.length > 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 
 module.exports = ReindexJobCreator;
