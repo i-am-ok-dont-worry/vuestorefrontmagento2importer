@@ -75,7 +75,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'attributes',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
@@ -88,7 +88,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'pages',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
@@ -101,7 +101,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'blocks',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
@@ -113,7 +113,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'products',
-        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
@@ -125,7 +125,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'productcategories',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
@@ -137,7 +137,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'categories',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
@@ -149,7 +149,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'reviews',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
@@ -161,7 +161,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'taxrule',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
@@ -173,7 +173,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'stocks',
-        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: false, env: this.env || {} });
     }
 
     /**
