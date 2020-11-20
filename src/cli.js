@@ -17,8 +17,12 @@ let kue = require('kue');
 let queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
 
 const _handleBoolParam = (value) => {
-  return JSON.parse(value) // simple way to handle all the '0', '1', 'true', true, false ...
-}
+    try {
+        return JSON.parse(value) // simple way to handle all the '0', '1', 'true', true, false ...
+    } catch (e) {
+        return false;
+    }
+};
 
 const reindexAttributes = (adapterName, removeNonExistent, ids) => {
   removeNonExistent = _handleBoolParam(removeNonExistent)
