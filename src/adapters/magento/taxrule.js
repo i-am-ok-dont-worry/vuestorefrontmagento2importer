@@ -13,7 +13,15 @@ class TaxruleAdapter extends AbstractMagentoAdapter {
   }
 
   getSourceData(context) {
-    return this.api.taxRules.list();
+    return this.api.taxRules.list()
+        .then((res) => {
+          if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
+            const items = res.items.filter(item => context.ids.map(id => parseInt(id, 10)).includes(item.id));
+            return { ...res, items };
+          } else {
+            return res;
+          }
+        });
   }
 
   getLabel(source_item) {
@@ -33,8 +41,8 @@ class TaxruleAdapter extends AbstractMagentoAdapter {
       logger.info(item)
 
       for (let ruleId of item.tax_rate_ids) {
-        subPromises.push(new Promise((resolve, reject) => { 
-          this.api.taxRates.list(ruleId).then(function(result) { 
+        subPromises.push(new Promise((resolve, reject) => {
+          this.api.taxRates.list(ruleId).then(function(result) {
             result.rate = parseFloat(result.rate)
             item.rates.push(result)
             resolve (result)
@@ -57,7 +65,7 @@ class TaxruleAdapter extends AbstractMagentoAdapter {
     this.total_count = items.total_count;
     return items.items;
   }
-  
+
   /**
    * We're transorming the data structure of item to be compliant with Smile.fr Elastic Search Suite
    * @param {object} item  document to be updated in elastic search

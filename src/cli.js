@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 let AdapterFactory = require('./adapters/factory');
 
-const TIME_TO_EXIT = process.env.TIME_TO_EXIT ? process.env.TIME_TO_EXIT : 30000; // wait 30s before quiting after task is done
+const TIME_TO_EXIT = process.env.TIME_TO_EXIT ? process.env.TIME_TO_EXIT : 2000; // wait 30s before quiting after task is done
 
 let config = require('./config');
 let logger = require('./log');
@@ -20,7 +20,7 @@ const _handleBoolParam = (value) => {
   return JSON.parse(value) // simple way to handle all the '0', '1', 'true', true, false ...
 }
 
-const reindexAttributes = (adapterName, removeNonExistent) => {
+const reindexAttributes = (adapterName, removeNonExistent, ids) => {
   removeNonExistent = _handleBoolParam(removeNonExistent)
 
   return new Promise((resolve, reject) => {
@@ -34,7 +34,7 @@ const reindexAttributes = (adapterName, removeNonExistent) => {
           adapter.cleanUp(tsk);
         }
 
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
@@ -58,7 +58,7 @@ const reindexReviews = (adapterName, removeNonExistent) => {
           adapter.cleanUp(tsk);
         }
 
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
@@ -69,7 +69,7 @@ const reindexReviews = (adapterName, removeNonExistent) => {
 /**
  * Re-index cms blocks
  */
-const reindexBlocks = (adapterName, removeNonExistent) => {
+const reindexBlocks = (adapterName, removeNonExistent, ids) => {
   removeNonExistent = _handleBoolParam(removeNonExistent)
 
   return new Promise((resolve, reject) => {
@@ -83,7 +83,7 @@ const reindexBlocks = (adapterName, removeNonExistent) => {
           adapter.cleanUp(tsk);
         }
 
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
@@ -94,7 +94,7 @@ const reindexBlocks = (adapterName, removeNonExistent) => {
 /**
  * Re-index cms pages
  */
-const reindexPages = (adapterName, removeNonExistent) => {
+const reindexPages = (adapterName, removeNonExistent, ids) => {
   removeNonExistent = _handleBoolParam(removeNonExistent)
 
   return new Promise((resolve, reject) => {
@@ -107,7 +107,7 @@ const reindexPages = (adapterName, removeNonExistent) => {
           adapter.cleanUp(tsk);
         }
 
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
@@ -134,7 +134,7 @@ const reindexCategories = (adapterName, removeNonExistent, extendedCategories, g
           adapter.cleanUp(tsk);
         }
 
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
@@ -156,7 +156,7 @@ const reindexTaxRules = (adapterName, removeNonExistent) => {
           adapter.cleanUp(tsk);
         }
 
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
@@ -169,25 +169,12 @@ const reindexProductCategories = (adapterName) => {
     let adapter = factory.getAdapter(adapterName, 'productcategories');
     adapter.run({
       done_callback: () => {
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
     });
   });
-}
-
-function cleanup(adapterName, cleanupType, transactionKey) {
-  let adapter = factory.getAdapter(adapterName, cleanupType);
-  let tsk = transactionKey;
-
-  if (tsk) {
-    logger.info('Cleaning up for TRANSACTION KEY = ' + tsk);
-    adapter.connect
-    adapter.cleanUp(tsk);
-  } else {
-    logger.error('No "transactionKey" given as a parameter');
-  }
 }
 
 function reindexStocks(adapterName, skus, page = null, maxActiveJobs = 1) {
@@ -198,7 +185,7 @@ function reindexStocks(adapterName, skus, page = null, maxActiveJobs = 1) {
       page,
       maxActiveJobs,
       done_callback: () => {
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
@@ -295,13 +282,13 @@ function reindexProducts(adapterName, removeNonExistent, partitions, partitionSi
         if (removeNonExistent) {
           adapter.cleanUp(tsk);
         }
-        logger.info('Task done! Exiting in 30s...');
+        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
       }
     };
     if (page!== null) logger.info('Current page is: ', page, partitionSize)
     if (skus) {
-      context.skus = skus.split(','); // update individual producs
+      context.skus = skus; // = skus.split(','); // update individual producs
       context.parent_sync = true
     }
 
@@ -323,6 +310,19 @@ function fullReindex(adapterName, removeNonExistent, partitions, partitionSize, 
     logger.error(err);
     process.exit(1)
   });
+}
+
+function cleanup(adapterName, cleanupType, transactionKey) {
+  let adapter = factory.getAdapter(adapterName, cleanupType);
+  let tsk = transactionKey;
+
+  if (tsk) {
+    logger.info('Cleaning up for TRANSACTION KEY = ' + tsk);
+    adapter.connect
+    adapter.cleanUp(tsk);
+  } else {
+    logger.error('No "transactionKey" given as a parameter');
+  }
 }
 
 /**
@@ -356,12 +356,35 @@ function runProductsworker(adapterName, partitions) {
 }
 
 program
+    .command('cleanup')
+    .option('--adapter <adapter>', 'name of the adapter', 'magento')
+    .option('--cleanupType <cleanupType>', 'type of the entity to clean up: product|category', 'product')
+    .option('--transactionKey <transactionKey>', 'transaction key', 0)
+    .action((cmd) => {
+      cleanup(cmd.adapter, cmd.cleanupType, cmd.transactionKey);
+    });
+
+program
+    .command('fullreindex')
+    .option('--adapter <adapter>', 'name of the adapter', 'magento')
+    .option('--partitions <partitions>', 'number of partitions', 1)
+    .option('--partitionSize <partitionSize>', 'size of the partitions', 50)
+    .option('--initQueue <initQueue>', 'use the queue', true)
+    .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', '')
+    .option('--extendedCategories <extendedCategories>', 'extended categories import', true)
+    .option('--generateUniqueUrlKeys <generateUniqueUrlKeys>', 'generate unique url_keys', true)
+    .action((cmd) => {
+      fullReindex(cmd.adapter, true, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, cmd.extendedCategories, cmd.generateUniqueUrlKeys);
+    });
+
+program
   .command('attributes')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
-  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', (value) => value.split(','))
+  .option('--ids <ids>', 'atrributes ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexAttributes(cmd.adapter, cmd.removeNonExistent);
+    await reindexAttributes(cmd.adapter, cmd.removeNonExistent, cmd.ids);
   });
 
 program
@@ -371,30 +394,9 @@ program
   .option('--extendedCategories <extendedCategories>', 'extended categories import', true)
   .option('--generateUniqueUrlKeys <generateUniqueUrlKeys>', 'make sure that category url keys are uniqe', true)
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 6)
+  .option('--ids <ids>', 'categories ids', (value) => value.split(','))
   .action(async (cmd) => {
     await reindexCategories(cmd.adapter, cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs);
-  });
-
-program
-  .command('cleanup')
-  .option('--adapter <adapter>', 'name of the adapter', 'magento')
-  .option('--cleanupType <cleanupType>', 'type of the entity to clean up: product|category', 'product')
-  .option('--transactionKey <transactionKey>', 'transaction key', 0)
-  .action((cmd) => {
-    cleanup(cmd.adapter, cmd.cleanupType, cmd.transactionKey);
-  });
-
-program
-  .command('fullreindex')
-  .option('--adapter <adapter>', 'name of the adapter', 'magento')
-  .option('--partitions <partitions>', 'number of partitions', 1)
-  .option('--partitionSize <partitionSize>', 'size of the partitions', 50)
-  .option('--initQueue <initQueue>', 'use the queue', true)
-  .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', '')
-  .option('--extendedCategories <extendedCategories>', 'extended categories import', true)
-  .option('--generateUniqueUrlKeys <generateUniqueUrlKeys>', 'generate unique url_keys', true)
-  .action((cmd) => {
-    fullReindex(cmd.adapter, true, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, cmd.extendedCategories, cmd.generateUniqueUrlKeys);
   });
 
 program
@@ -410,7 +412,7 @@ program
   .option('--partitions <partitions>', 'number of partitions', 1)
   .option('--partitionSize <partitionSize>', 'size of the partitions', 50)
   .option('--initQueue <initQueue>', 'use the queue', true)
-  .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', '')
+  .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', (value) => value.split(','))
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--updatedAfter <updatedAfter>', 'timestamp to start the synchronization from', '')
   .option('--page <page>', 'start from specific page', null)
@@ -429,56 +431,17 @@ program
     .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', (value) => value.split(','))
     .option('--page <page>', 'start from specific page', null)
     .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
+    .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
     .action((cmd) => {
         reindexStocks(cmd.adapter, cmd.skus, cmd.page, cmd.maxActiveJobs);
     });
-
-program
-  .command('productsdelta')
-  .option('--adapter <adapter>', 'name of the adapter', 'magento')
-  .option('--partitions <partitions>', 'number of partitions', 1)
-  .option('--partitionSize <partitionSize>', 'size of the partitions', 50)
-  .option('--initQueue <initQueue>', 'use the queue', true)
-  .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', '')
-  .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
-  .action((cmd) => {
-    let indexMeta = { lastIndexDate: new Date() }
-    let updatedAfter = null
-    try {
-      // Make sure so the temporary folder exists.
-      if (!fs.existsSync('tmp')) {
-        fs.mkdirSync('tmp')
-      }
-      indexMeta = jsonFile.readFileSync(INDEX_META_PATH)
-      updatedAfter = new Date(indexMeta.lastIndexDate)
-    } catch (err) {
-      console.log('Seems like first time run!')
-      updatedAfter = null // full reindex
-    }
-
-    reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, updatedAfter);
-
-    try {
-      indexMeta.lastIndexDate = new Date()
-      jsonFile.writeFile(INDEX_META_PATH, indexMeta)
-    } catch (err) {
-      console.log('Error writing index meta!', err)
-    }
-  })
-
-program
-  .command('productsworker')
-  .option('--adapter <adapter>', 'name of the adapter', 'magento')
-  .option('--partitions <partitions>', 'number of partitions', 1)
-  .action((cmd) => {
-    runProductsworker(cmd.adapter, cmd.partitions);
-  })
 
 program
   .command('reviews')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
+  .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
   .action(async (cmd) => {
     await reindexReviews(cmd.adapter, cmd.removeNonExistent);
   })
@@ -488,6 +451,7 @@ program
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
+  .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
   .action(async (cmd) => {
     await reindexTaxRules(cmd.adapter, cmd.removeNonExistent);
   })
@@ -499,7 +463,8 @@ program
   .command('blocks')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
-  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
+  .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', (value) => value.split(','))
+  .option('--ids <ids>', 'blocks ids', 1)
   .action(async (cmd) => {
     await reindexBlocks(cmd.adapter, cmd.removeNonExistent);
   })
@@ -508,9 +473,52 @@ program
   .command('pages')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
+  .option('--ids <ids>', 'pages ids', (value) => value.split(','))
   .action(async (cmd) => {
     await reindexPages(cmd.adapter, cmd.removeNonExistent);
   });
+
+program
+    .command('productsdelta')
+    .option('--adapter <adapter>', 'name of the adapter', 'magento')
+    .option('--partitions <partitions>', 'number of partitions', 1)
+    .option('--partitionSize <partitionSize>', 'size of the partitions', 50)
+    .option('--initQueue <initQueue>', 'use the queue', true)
+    .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh informations from', '')
+    .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
+    .action((cmd) => {
+      let indexMeta = { lastIndexDate: new Date() }
+      let updatedAfter = null
+      try {
+        // Make sure so the temporary folder exists.
+        if (!fs.existsSync('tmp')) {
+          fs.mkdirSync('tmp')
+        }
+        indexMeta = jsonFile.readFileSync(INDEX_META_PATH)
+        updatedAfter = new Date(indexMeta.lastIndexDate)
+      } catch (err) {
+        console.log('Seems like first time run!')
+        updatedAfter = null // full reindex
+      }
+
+      reindexProducts(cmd.adapter, cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, updatedAfter);
+
+      try {
+        indexMeta.lastIndexDate = new Date()
+        jsonFile.writeFile(INDEX_META_PATH, indexMeta)
+      } catch (err) {
+        console.log('Error writing index meta!', err)
+      }
+    })
+
+/*program
+  .command('productsworker')
+  .option('--adapter <adapter>', 'name of the adapter', 'magento')
+  .option('--partitions <partitions>', 'number of partitions', 1)
+  .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
+  .action((cmd) => {
+    runProductsworker(cmd.adapter, cmd.partitions);
+  })*/
 
 program
   .on('command:*', () => {

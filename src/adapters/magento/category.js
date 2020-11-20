@@ -106,6 +106,24 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     });
   }
 
+  prepareItems(items) {
+    if(!items)
+      return items;
+
+    if (items.total_count)
+      this.total_count = items.total_count;
+
+    if (!Array.isArray(items))
+      items = new Array(items);
+
+    const ctx = this.current_context;
+    if (ctx && ctx.hasOwnProperty('ids') && ctx.ids instanceof Array && ctx.ids.length > 0) {
+      return items.filter(item => ctx.ids.map(id => parseInt(id, 10)).includes(item.id));
+    }
+
+    return items;
+  }
+
   /**
    * We're transforming the data structure of item to be compliant with Smile.fr Elastic Search Suite
    * @param {object} item  document to be updated in elastic search

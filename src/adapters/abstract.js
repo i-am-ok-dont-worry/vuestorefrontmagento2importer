@@ -4,7 +4,6 @@ const AdapterFactory = require('./factory');
 const Redis = require('redis');
 const kue = require('kue');
 const queue = kue.createQueue();
-const ReindexUtils = require('../helpers/reindex-utils');
 
 class AbstractAdapter {
 
@@ -15,7 +14,6 @@ class AbstractAdapter {
 
   constructor(app_config) {
     this.config = app_config;
-    this.reindexUtils = new ReindexUtils(app_config);
 
     let factory = new AdapterFactory(app_config);
     this.db = factory.getAdapter('nosql', app_config.db.driver);
@@ -51,19 +49,6 @@ class AbstractAdapter {
     this.validateConfig(this.config);
 
     this.tasks_count = 0;
-
-    process.on('SIGINT', () => {
-      this.reindexUtils.removeJob(this.getCollectionName());
-      process.exit(0);
-    });
-    process.on('SIGUSR1', () => {
-      this.reindexUtils.removeJob(this.getCollectionName());
-      process.exit(0);
-    });
-    process.on('SIGUSR2', () => {
-      this.reindexUtils.removeJob(this.getCollectionName());
-      process.exit(0);
-    });
   }
 
   isValidFor(entity_type) {
@@ -92,16 +77,6 @@ class AbstractAdapter {
       this.current_context.transaction_key = new Date().getTime(); // the key used to filter out records NOT ADDED by this import
 
     this.db.connect(async () => {
-
-      // Check if reindex can run
-      const { status } = await this.reindexUtils.getReindexStatus(this.getCollectionName());
-      if (status === ReindexUtils.JobStatus.PENDING) {
-        logger.info('Reindex job is already pending');
-        process.exit(1);
-      } else {
-        await this.reindexUtils.setReindexStatus(this.getCollectionName(), ReindexUtils.JobStatus.PENDING);
-      }
-
       logger.info('Connected correctly to server');
       logger.info(`TRANSACTION KEY = ${this.current_context.transaction_key}`);
 
@@ -150,8 +125,6 @@ class AbstractAdapter {
 
   async onFinish() {
     this.db.close();
-    await this.reindexUtils.setCleanupData(this.getCollectionName());
-    await this.reindexUtils.setReindexStatus(this.getCollectionName(), ReindexUtils.JobStatus.DONE);
   }
 
   prepareItems(items) {

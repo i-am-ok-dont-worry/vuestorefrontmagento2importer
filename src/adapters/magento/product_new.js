@@ -24,7 +24,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     getFilterQuery(context) {
         let query = '';
 
-        if (context.skus) { // pul individual products
+        if (context.skus && context.skus.length > 0) { // pul individual products
             if (!Array.isArray(context.skus))
                 context.skus = new Array(context.skus);
 
@@ -37,6 +37,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                 'searchCriteria[filter_groups][0][filters][0][value]=' + encodeURIComponent(moment(context.updated_after).utc().format()) + '&' +
                 'searchCriteria[filter_groups][0][filters][0][condition_type]=gt';
         }
+
         return query;
     }
 
@@ -59,7 +60,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         let query = this.getFilterQuery(context);
         let searchCriteria = '&searchCriteria[currentPage]=%d&searchCriteria[pageSize]=%d';
 
-        this.page = context.page;
+        this.page = context.page || 1;
         this.page_size = context.page_size;
 
         if (!context.use_paging) {

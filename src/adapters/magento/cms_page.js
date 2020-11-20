@@ -25,6 +25,14 @@ class PageAdapter extends AbstractMagentoAdapter {
         }
 
         return this.api.pages.list()
+            .then((res) => {
+                if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
+                    const items = res.items.filter(item => context.ids.map(id => parseInt(id, 10)).includes(item.id));
+                    return { ...res, items };
+                } else {
+                    return res;
+                }
+            })
             .catch((err) => {
                 throw new Error(err);
             });

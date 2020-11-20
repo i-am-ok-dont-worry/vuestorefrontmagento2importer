@@ -29,8 +29,8 @@ module.exports = {
     },
   },
 
-  /*magento: {
-    url: process.env.MAGENTO_URL || 'https://meringer.mage.staging.grupakmk.pl/rest',
+  magento: {
+    url: process.env.MAGENTO_URL || 'https://mage.meringer.staging.grupakmk.pl/rest',
     consumerKey: process.env.MAGENTO_CONSUMER_KEY || '8xb6xctldzbtfx6zi692rc09qqaa30iv',
     consumerSecret: process.env.MAGENTO_CONSUMER_SECRET || '6wwwvhbmwlnyzu7jj5lrutz67bxp6aot',
     accessToken: process.env.MAGENTO_ACCESS_TOKEN || '3vxl6i2ne1exhjwys0y0184adv5r15qr',
@@ -38,8 +38,8 @@ module.exports = {
     storeId: process.env.MAGENTO_STORE_ID || 1,
     currencyCode: process.env.MAGENTO_CURRENCY_CODE || 'PLN',
     msi: { enabled: process.env.MAGENTO_MSI_ENABLED || false, stockId: process.env.MAGENTO_MSI_STOCK_ID || 1 }
-  },*/
-  magento: {
+  },
+  /*magento: {
     url: process.env.MAGENTO_URL || 'https://mage.ktm.staging.grupakmk.pl/rest',
     consumerKey: process.env.MAGENTO_CONSUMER_KEY || '7qtx5dxgf8dcbqrtrp6gqoykkmebvli8',
     consumerSecret: process.env.MAGENTO_CONSUMER_SECRET || '4zknqjlyptnluwpo5st2vaetsumusxku',
@@ -48,7 +48,7 @@ module.exports = {
     storeId: process.env.MAGENTO_STORE_ID || 1,
     currencyCode: process.env.MAGENTO_CURRENCY_CODE || 'USD',
     msi: { enabled: process.env.MAGENTO_MSI_ENABLED || false, stockId: process.env.MAGENTO_MSI_STOCK_ID || 1 }
-  },
+  },*/
 
   vuestorefront: {
     invalidateCache: JSON.parse(typeof process.env.VS_INVALIDATE_CACHE === 'undefined' ? false : process.env.VS_INVALIDATE_CACHE),

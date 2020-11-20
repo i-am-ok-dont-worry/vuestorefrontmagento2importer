@@ -15,7 +15,15 @@ class AttributeAdapter extends AbstractMagentoAdapter {
   }
 
   getSourceData(context) {
-    return this.api.attributes.list();
+    return this.api.attributes.list()
+        .then((res) => {
+          if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
+            const items = res.items.filter(item => context.ids.map(id => parseInt(id, 10)).includes(item.id));
+            return { ...res, items };
+          } else {
+            return res;
+          }
+        });
   }
 
   /**  Regarding Magento2 api docs and reality we do have an exception here that items aren't listed straight in the response but under "items" key */

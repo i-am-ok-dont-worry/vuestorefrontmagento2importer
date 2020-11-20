@@ -18,14 +18,24 @@ class BlockAdapter extends AbstractMagentoAdapter {
 
     getSourceData(context) {
         if (this.use_paging) {
-            return this.api.blocks.list('&searchCriteria[currentPage]=' + this.page + '&searchCriteria[pageSize]=' + this.page_size + (query ? '&' + query : '')).catch((err) => {
-                throw new Error(err);
-            });
+            return this.api.blocks.list('&searchCriteria[currentPage]=' + this.page + '&searchCriteria[pageSize]=' + this.page_size + (query ? '&' + query : ''))
+                .catch((err) => {
+                    throw new Error(err);
+                });
         }
 
-        return this.api.blocks.list().catch((err) => {
-            throw new Error(err);
-        });
+        return this.api.blocks.list()
+            .then((res) => {
+                if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
+                    const items = res.items.filter(item => context.ids.map(id => parseInt(id, 10)).includes(item.id));
+                    return { ...res, items };
+                } else {
+                    return res;
+                }
+            })
+            .catch((err) => {
+                throw new Error(err);
+            });
     }
 
     prepareItems(items) {
@@ -40,21 +50,21 @@ class BlockAdapter extends AbstractMagentoAdapter {
         if (items.items) {
             items = items.items; // this is an exceptional behavior for Magento2 api for lists
         }
-        
+
         return items;
     }
 
     isFederated() {
         return false;
     }
-    
+
     preProcessItem(item) {
         //
         return new Promise((done, reject) => {
             if (item) {
                 item.type = 'cms_block'
             }
-          
+
           return done(item);
         });
     }
