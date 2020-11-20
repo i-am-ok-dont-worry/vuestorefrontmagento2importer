@@ -103,6 +103,10 @@ class JobManager {
                     return;
                 }
 
+                if (!ids) {
+                    ids = ['full'];
+                }
+
                 let outputStatus = {};
                 ids.forEach((id, index) => {
                    const jobId = data[id];
