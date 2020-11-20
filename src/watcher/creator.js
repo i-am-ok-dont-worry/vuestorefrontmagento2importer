@@ -1,7 +1,7 @@
+const { EntityType } = require('./entity');
 const kue = require('kue');
 const queue = kue.createQueue();
 const JobManager = require('./job-manager');
-const { EntityType } = require('./entity');
 
 
 const _createJobDataFunc = Symbol();

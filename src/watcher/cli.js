@@ -24,7 +24,7 @@ program.command('watch')
 program.command('health')
     .action(async () => {
         const worker = new Worker();
-        console.warn(await worker.status());
+        console.warn(await worker.health());
         process.exit(0);
     });
 

@@ -9,6 +9,7 @@ const safeCallback = (callback) => {
 };
 
 class Worker {
+
     constructor ({ maxActiveJobs = 1, env } = {}) {
         this.busy = false;
         this.ctx = null;
@@ -17,6 +18,10 @@ class Worker {
         this.manager= new Manager();
     }
 
+    /**
+     * Starts observing queue
+     * @param callback Callback function called when job has been processed
+     */
     start(callback) {
         queue.process('i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
             console.warn('Processing: ', JSON.stringify(job.data));
@@ -35,6 +40,10 @@ class Worker {
         });
     }
 
+    /**
+     * Pauses queue execution
+     * until resume() method is called
+     */
     pause() {
         if (this.ctx) {
             this.ctx.pause(0, function(err) {
@@ -43,6 +52,9 @@ class Worker {
         }
     }
 
+    /**
+     * Resumes queue execution
+     */
     resume () {
         if (this.ctx) {
             this.ctx.resume();
@@ -50,7 +62,11 @@ class Worker {
         }
     }
 
-    status () {
+    /**
+     * Returns queue health status
+     * @returns {Promise<unknown>}
+     */
+    health () {
         let status = { inactiveJobs: 0, activeJobs: 0, delayedJobs: 0, failedJobs: 0, busy: this.busy };
         return new Promise((resolve) => {
             queue.inactiveCount('i:mage-data', (err, total) => {

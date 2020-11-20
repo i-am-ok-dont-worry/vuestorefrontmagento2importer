@@ -1,5 +1,5 @@
-const spawn = require('child_process').spawn;
 const { EntityType } = require('./entity');
+const spawn = require('child_process').spawn;
 
 const _exec = Symbol();
 const _assertFunctionImplemented = Symbol();
@@ -186,7 +186,7 @@ class ReindexExecutor {
     }
 
     /**
-     * Handles child process spawning
+     * Handles spawning child processes
      * @param cmd Command
      * @param args
      * @param opts

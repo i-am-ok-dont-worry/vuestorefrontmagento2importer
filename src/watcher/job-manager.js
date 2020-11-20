@@ -1,10 +1,9 @@
+const { EntityType } = require('./entity');
 const Redis = require('redis');
 const client = Redis.createClient();
-const merge = require('lodash/merge');
 const difference = require('lodash/difference');
 const isEmpty = require('lodash/isEmpty');
 const kue = require('kue');
-const {EntityType} = require('./entity');
 
 class JobManager {
 
@@ -59,6 +58,12 @@ class JobManager {
         });
     }
 
+    /**
+     * Clears status metadata
+     * @param entity
+     * @param ids
+     * @returns {Promise<unknown>}
+     */
     clearJobMetadata ({ entity, ids }) {
         return new Promise((resolve, reject) => {
             if (!ids) { ids = ['full']; }
