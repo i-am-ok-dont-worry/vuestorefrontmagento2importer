@@ -73,7 +73,7 @@ class ReindexExecutor {
     [_handleAttributesReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'attributes',
         ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
@@ -86,7 +86,7 @@ class ReindexExecutor {
     [_handlePagesReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'pages',
         ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
@@ -99,7 +99,7 @@ class ReindexExecutor {
     [_handleBlocksReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'blocks',
         ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
@@ -111,7 +111,7 @@ class ReindexExecutor {
     [_handleProductsReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'products',
         ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
@@ -123,7 +123,7 @@ class ReindexExecutor {
     [_handleCategoriesProductsReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'productcategories',
         ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
@@ -135,7 +135,7 @@ class ReindexExecutor {
     [_handleCategoriesReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'categories',
         ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
@@ -147,7 +147,7 @@ class ReindexExecutor {
     [_handleReviewsReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'reviews',
         ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
@@ -159,7 +159,7 @@ class ReindexExecutor {
     [_handleTaxRulesReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'taxrule',
         ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
@@ -171,7 +171,7 @@ class ReindexExecutor {
     [_handleStocksReindex](context) {
         return this[_exec]('node', [
             '--harmony',
-            './src/cli.js',
+            __dirname + '/../cli.js',
             'stocks',
         ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
