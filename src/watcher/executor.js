@@ -75,8 +75,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'attributes',
-            '--ids=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**
@@ -89,8 +88,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'pages',
-            '--ids=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**
@@ -103,8 +101,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'blocks',
-            '--ids=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**
@@ -116,8 +113,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'products',
-            '--skus=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**
@@ -129,8 +125,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'productcategories',
-            '--ids=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**
@@ -142,8 +137,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'categories',
-            '--ids=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**
@@ -155,8 +149,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'reviews',
-            '--ids=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**
@@ -168,8 +161,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'taxrule',
-            '--ids=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**
@@ -181,8 +173,7 @@ class ReindexExecutor {
             '--harmony',
             './src/cli.js',
             'stocks',
-            '--skus=' + context.ids
-        ], { shell: true, env: this.env || {} });
+        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: true, env: this.env || {} });
     }
 
     /**

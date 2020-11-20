@@ -20,7 +20,6 @@ class JobManager {
             client.hgetall(`i:${entity}:status`, (err, data) => {
                 if (err) { reject(new Error(`Cannot create job: ` + err)); }
                 else if (data && ids && ids.length > 0 && !isEmpty(data)) {
-                    console.warn('Diff: ', difference(Object.keys(data), ids));
                     resolve(difference(Object.keys(data), ids));
                 } else if (ids && ids.length > 0) {
                     resolve(ids);
