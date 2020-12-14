@@ -105,6 +105,21 @@ class Worker {
     }
 
     /**
+     * Delete stuck jobs
+     */
+    remove () {
+        return new Promise((resolve, reject) => {
+            queue.active(( err, ids ) => {
+                ids.forEach((id, index) => {
+                    kue.Job.remove(id, (err) => {
+                       if (index === ids.length - 1) { resolve(); }
+                    });
+                });
+            });
+        });
+    }
+
+    /**
      * Runs appropriate indexer for a job
      * @param context
      */

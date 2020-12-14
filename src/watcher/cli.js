@@ -66,4 +66,16 @@ program.command('requeue')
        }
     });
 
+program.command('remove')
+    .action(async () => {
+       try {
+           const worker = new Worker();
+           await worker.remove();
+           process.exit(0);
+       } catch (e) {
+           console.error('Cannot remove stuck jobs: ', e.message);
+           process.exit(1);
+       }
+    });
+
 program.parse(process.argv);
