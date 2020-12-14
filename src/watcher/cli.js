@@ -54,4 +54,16 @@ program.command('status')
         }
     });
 
+program.command('requeue')
+    .action(async () => {
+       try {
+           const worker = new Worker();
+           await worker.requeue();
+           process.exit(0);
+       } catch (e) {
+        console.error(`Error while requeue: `, e.message);
+        process.exit(0);
+       }
+    });
+
 program.parse(process.argv);
