@@ -231,6 +231,15 @@ class ReindexExecutor {
     [_exec] (cmd, args, opts) {
         return new Promise((resolve, reject) => {
             let child = spawn(cmd, args, opts);
+
+            child.stdout.on('data', (data) => {
+                console.log(data.toString('utf8'));
+            });
+
+            child.stderr.on('data', (data) => {
+                console.log(data.toString('utf8'));
+            });
+
             child.on('close', (code) => {
                 resolve(code);
             });

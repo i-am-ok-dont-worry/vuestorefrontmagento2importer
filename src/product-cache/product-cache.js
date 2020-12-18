@@ -1,7 +1,7 @@
 'use strict';
 const Redis = require('redis');
-const client = Redis.createClient();
 const config = require('../config');
+const client = Redis.createClient(config.redis);
 const AdapterFactory = require('../adapters/factory');
 const logger = require('../log');
 
