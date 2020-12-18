@@ -120,6 +120,21 @@ class Worker {
     }
 
     /**
+     * Clear jobs
+     */
+    clear () {
+        return new Promise((resolve, reject) => {
+           queue.inactive((err, ids) => {
+               ids.forEach((id, index) => {
+                   kue.Job.remove(id, (err) => {
+                       if (index === ids.length - 1) { resolve(); }
+                   });
+               });
+           });
+        });
+    }
+
+    /**
      * Runs appropriate indexer for a job
      * @param context
      */

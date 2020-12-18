@@ -78,4 +78,16 @@ program.command('remove')
        }
     });
 
+program.command('clear')
+    .action(async () => {
+        try {
+            const worker = new Worker();
+            await worker.clear();
+            process.exit(0);
+        } catch (e) {
+            console.error('Cannot remove stuck jobs: ', e.message);
+            process.exit(1);
+        }
+    });
+
 program.parse(process.argv);
