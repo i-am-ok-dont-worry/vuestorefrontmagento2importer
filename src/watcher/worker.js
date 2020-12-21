@@ -124,13 +124,13 @@ class Worker {
      * Clear jobs
      */
     clear () {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
+           await this.manager.clearAll();
            queue.inactive((err, ids) => {
                if (err || !ids.length) { resolve(); }
                ids.forEach((id, index) => {
-                   kue.Job.remove(id, async (err) => {
+                   kue.Job.remove(id, () => {
                        if (index === ids.length - 1) {
-                           await this.manager.clearAll();
                            resolve();
                        }
                    });

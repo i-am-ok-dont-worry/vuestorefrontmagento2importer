@@ -5,6 +5,11 @@ const client = Redis.createClient({ ...config.redis });
 const difference = require('lodash/difference');
 const isEmpty = require('lodash/isEmpty');
 const kue = require('kue');
+import TagCache from 'redis-tag-cache';
+const cache = new TagCache({
+    redis: config.redis,
+    defaultTimeout: 86400
+});
 
 class JobManager {
 
@@ -68,8 +73,19 @@ class JobManager {
      * @returns {Promise<unknown>}
      */
     clearJobMetadata ({ entity, ids }) {
-        return new Promise((resolve, reject) => {
+        const invalidateCache = async () => {
+            for (let id of ids) {
+                try {
+                     const prefix = entity.indexOf(0).toUpperCase();
+                     await cache.invalidate(`${prefix}${id}`);
+                } catch (e) {}
+            }
+        };
+
+        return new Promise(async(resolve, reject) => {
             if (!ids) { ids = ['full']; }
+
+            await invalidateCache();
 
             client.hgetall(`i:${entity}:status`, (err, data) => {
                 if (!data) {
