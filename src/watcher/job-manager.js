@@ -138,6 +138,19 @@ class JobManager {
                 return result;
             });
     }
+
+    clearAll () {
+        return new Promise((resolve, reject) => {
+            Object.values(EntityType).forEach((key, index) => {
+                client.del(`i:${key}:status`, (err) => {
+                   if (!err) { console.warn('Cleared'); }
+                   if (index === Object.values(EntityType).length - 1) {
+                       resolve();
+                   }
+                });
+            });
+        });
+    }
 }
 
 module.exports = JobManager;

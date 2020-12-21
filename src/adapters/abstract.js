@@ -33,6 +33,8 @@ class AbstractAdapter {
 
     this.update_document = true; // should we update database with new data from API? @see productcategory where this is disabled
 
+    this.audit_counter = 0;
+    this.audit_counter_prev = -1;
     this.total_count = 0;
     this.page_count = 0;
     this.page_size = 50;
@@ -48,8 +50,27 @@ class AbstractAdapter {
     this.is_running = false;
 
     this.validateConfig(this.config);
+    this.probeProcess();
 
     this.tasks_count = 0;
+  }
+
+  /**
+   * Check if process is stuck. If so kill the process
+   */
+  probeProcess () {
+    setInterval(() => {
+      if (this.audit_counter === this.audit_counter_prev) {
+        logger.warn(`Process inactive for 120s. Killing...`);
+        process.exit(1);
+      } else {
+        this.audit_counter_prev = this.audit_counter_prev + 1;
+      }
+    }, 120000);
+  }
+
+  markProcessActive() {
+    this.audit_counter = this.audit_counter + 1;
   }
 
   isValidFor(entity_type) {
@@ -64,6 +85,7 @@ class AbstractAdapter {
    * Default done callback called after all main items are processed by processItems
    */
   defaultDoneCallback() {
+    setTimeout(() => process.exit(0), 1000);
     return;
   }
 
@@ -203,6 +225,8 @@ class AbstractAdapter {
     this.is_running = true;
     queue.process(`mage2-import-job-${this.getCollectionName(true)}`, Number(this.current_context.maxActiveJobs || 10), (job, done) => {
       const item = job.data;
+
+      this.markProcessActive();
       this.preProcessItem(item)
           .then((item) => {
             item.tsk = this.getCurrentContext().transaction_key;

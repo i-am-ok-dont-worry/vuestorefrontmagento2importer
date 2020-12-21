@@ -110,6 +110,7 @@ class Worker {
     remove () {
         return new Promise((resolve, reject) => {
             queue.active(( err, ids ) => {
+                if (err || !ids.length) { resolve(); }
                 ids.forEach((id, index) => {
                     kue.Job.remove(id, (err) => {
                        if (index === ids.length - 1) { resolve(); }
@@ -125,9 +126,13 @@ class Worker {
     clear () {
         return new Promise((resolve, reject) => {
            queue.inactive((err, ids) => {
+               if (err || !ids.length) { resolve(); }
                ids.forEach((id, index) => {
-                   kue.Job.remove(id, (err) => {
-                       if (index === ids.length - 1) { resolve(); }
+                   kue.Job.remove(id, async (err) => {
+                       if (index === ids.length - 1) {
+                           await this.manager.clearAll();
+                           resolve();
+                       }
                    });
                });
            });
