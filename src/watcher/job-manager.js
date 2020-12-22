@@ -84,31 +84,47 @@ class JobManager {
             }
         };
 
-        return new Promise(async(resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
+            let index = 0;
+            const deleteEntityStatusToPromise = (id) => new Promise((res, rej) => {
+                client.hdel (`i:${entity}:status`, id, (err) => {
+                    if (err) { rej(new Error(`Cannot delete entry: ${id}`)); }
+                    else { res(); }
+                })
+            });
+
             if (!ids) { ids = ['full']; }
 
             await invalidateCache();
 
-            client.hgetall(`i:${entity}:status`, (err, data) => {
-                if (!data) {
+            client.hgetall(`i:${entity}:status`, async (err, data) => {
+                if (err) {
+                    console.log('Cannot get status for entity: ', entity);
                     resolve();
                     return;
                 }
 
-                ids.forEach((id, index) => {
-                   const job = data[id];
-                   if (job) {
-                       client.hdel (`i:${entity}:status`, id, (err) => {
-                           if (err) { reject(new Error(`Cannot delete entry: ${id}`)); }
-                           else {
-                               if (index === ids.length - 1) {
-                                   console.log('All done!');
-                                   resolve();
-                               }
-                           }
-                       })
-                   }
-                });
+                if (!data) {
+                    console.log('Cannot get data for task: ', entity);
+                    resolve();
+                    return;
+                }
+
+                for (let id of ids) {
+                    try {
+                        const job = data[id];
+                        if (job) {
+                            await deleteEntityStatusToPromise(id);
+                        }
+                    } catch (e) {
+                        console.error(e.message);
+                    }
+
+                    index++;
+                    if (index === ids.length - 1) { resolve(); }
+                }
+
+                resolve();
             });
         });
     }
