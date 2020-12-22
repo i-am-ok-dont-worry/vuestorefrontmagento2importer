@@ -73,12 +73,13 @@ class JobManager {
      * @returns {Promise<unknown>}
      */
     clearJobMetadata ({ entity, ids }) {
+        console.log('Clearing job metadata: ', entity, ids);
         const invalidateCache = async () => {
             for (let id of ids) {
                 try {
                      const prefix = entity.indexOf(0).toUpperCase();
                      await cache.invalidate(`${prefix}${id}`);
-                     console.warn('Invalidated cache tag: ', `${prefix}${id}`);
+                     console.log('Invalidated cache tag: ', `${prefix}${id}`);
                 } catch (e) {}
             }
         };
@@ -94,12 +95,17 @@ class JobManager {
                     return;
                 }
 
-                ids.forEach(id => {
+                ids.forEach((id, index) => {
                    const job = data[id];
                    if (job) {
                        client.hdel (`i:${entity}:status`, id, (err) => {
                            if (err) { reject(new Error(`Cannot delete entry: ${id}`)); }
-                           else { resolve(); }
+                           else {
+                               if (index === ids.length - 1) {
+                                   console.log('All done!');
+                                   resolve();
+                               }
+                           }
                        })
                    }
                 });

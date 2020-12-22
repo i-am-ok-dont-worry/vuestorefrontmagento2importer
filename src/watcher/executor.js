@@ -241,12 +241,12 @@ class ReindexExecutor {
             });
 
             child.on('close', (code) => {
-                console.warn('Job done');
+                console.warn('Finished');
                 resolve(code);
             });
 
             child.on('exit', (code) => {
-                console.warn('Job done');
+                console.warn('Finished');
                 resolve(code);
             });
 
