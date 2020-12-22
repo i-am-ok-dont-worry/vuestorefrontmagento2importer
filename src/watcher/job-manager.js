@@ -5,7 +5,7 @@ const client = Redis.createClient({ ...config.redis });
 const difference = require('lodash/difference');
 const isEmpty = require('lodash/isEmpty');
 const kue = require('kue');
-import TagCache from 'redis-tag-cache';
+const TagCache = require('redis-tag-cache');
 const cache = new TagCache({
     redis: config.redis,
     defaultTimeout: 86400
@@ -78,6 +78,7 @@ class JobManager {
                 try {
                      const prefix = entity.indexOf(0).toUpperCase();
                      await cache.invalidate(`${prefix}${id}`);
+                     console.warn('Invalidated cache tag: ', `${prefix}${id}`);
                 } catch (e) {}
             }
         };
