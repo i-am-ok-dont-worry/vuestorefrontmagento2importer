@@ -5,7 +5,7 @@ const client = Redis.createClient({ ...config.redis });
 const difference = require('lodash/difference');
 const isEmpty = require('lodash/isEmpty');
 const kue = require('kue');
-const TagCache = require('redis-tag-cache');
+const TagCache = require('redis-tag-cache').default;
 const cache = new TagCache({
     redis: config.redis,
     defaultTimeout: 86400
