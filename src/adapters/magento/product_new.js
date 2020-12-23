@@ -24,7 +24,13 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     getFilterQuery(context) {
         let query = '';
 
-        if (context.skus && context.skus.length > 0) { // pul individual products
+        if (context.ids && context.ids.length > 0) { // pull individual products by ids
+            if (!Array.isArray(context.ids)) { context.ids = new Array(context.ids); }
+
+            query += 'searchCriteria[filter_groups][0][filters][0][field]=entity_id&' +
+                'searchCriteria[filter_groups][0][filters][0][value]=' + encodeURIComponent(context.ids.join(',')) + '&' +
+                'searchCriteria[filter_groups][0][filters][0][condition_type]=in';
+        }else if (context.skus && context.skus.length > 0) { // pull individual products by skus
             if (!Array.isArray(context.skus))
                 context.skus = new Array(context.skus);
 

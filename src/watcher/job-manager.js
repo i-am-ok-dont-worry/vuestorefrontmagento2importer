@@ -89,8 +89,11 @@ class JobManager {
             const deleteEntityStatusToPromise = (id) => new Promise((res, rej) => {
                 client.hdel (`i:${entity}:status`, id, (err) => {
                     if (err) { rej(new Error(`Cannot delete entry: ${id}`)); }
-                    else { res(); }
-                })
+                    else {
+                        console.log('Cleared entity status for: ', entity, ids);
+                        res();
+                    }
+                });
             });
 
             if (!ids) { ids = ['full']; }

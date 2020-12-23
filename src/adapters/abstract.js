@@ -3,7 +3,7 @@
 const AdapterFactory = require('./factory');
 const Redis = require('redis');
 const kue = require('kue');
-const config = require('config');
+const config = require('../config');
 const queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
 
 class AbstractAdapter {

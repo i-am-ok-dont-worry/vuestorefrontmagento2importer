@@ -126,6 +126,7 @@ class Worker {
     clear () {
         return new Promise(async (resolve, reject) => {
            await this.manager.clearAll();
+
            queue.inactive((err, ids) => {
                if (err || !ids.length) { resolve(); }
                ids.forEach((id, index) => {

@@ -26,7 +26,7 @@ module.exports = function (restClient) {
             encodeURIComponent(stockId)
         );
         return restClient.get(endpointUrl);
-    }
+    };
 
     return module;
 }

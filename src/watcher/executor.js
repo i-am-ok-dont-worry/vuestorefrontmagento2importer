@@ -158,7 +158,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'products',
-        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
@@ -210,7 +210,7 @@ class ReindexExecutor {
     }
 
     /**
-     * Runs tax rules reindex
+     * Runs stocks rules reindex
      * @param context
      */
     [_handleStocksReindex](context) {
@@ -218,7 +218,7 @@ class ReindexExecutor {
             '--harmony',
             __dirname + '/../cli.js',
             'stocks',
-        ].concat(context.ids ? '--skus=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
     /**
