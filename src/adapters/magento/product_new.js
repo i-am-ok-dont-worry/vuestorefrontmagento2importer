@@ -335,10 +335,8 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                 const catIdsArray = item.category_ids.map(item => parseInt(item));
                 const category = await this._expandCategories(catIdsArray);
                 Object.assign(item, { category });
-                delete item['category_ids'];
                 return item;
             } else {
-                delete item['category_ids'];
                 return await getCatsFromCacheToPromise();
             }
         } catch (e) {
