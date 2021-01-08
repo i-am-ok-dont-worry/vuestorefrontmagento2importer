@@ -277,7 +277,18 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                             if (atr != null) {
                                 option.attribute_code = atr.attribute_code;
                                 option.values.map((el) => {
-                                    el.label = optionLabel(atr, el.value_index);
+                                    el.label = (attr, optionId) => {
+                                        if (attr) {
+                                            let opt = attr.options.find((op) => {
+                                                if (_.toString(op.value) === _.toString(optionId)) {
+                                                    return op
+                                                }
+                                            });
+                                            return opt ? opt.label : optionId
+                                        } else {
+                                            return optionId
+                                        }
+                                    };
                                 });
 
                                 logger.info(`Product options for ${atr.attribute_code} for ${item.sku} set`);
