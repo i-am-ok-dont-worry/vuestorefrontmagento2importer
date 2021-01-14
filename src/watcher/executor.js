@@ -1,6 +1,6 @@
 const { EntityType } = require('./entity');
 const spawn = require('child_process').spawn;
-const config = require('config');
+const config = require('../config');
 
 const _exec = Symbol();
 const _assertFunctionImplemented = Symbol();

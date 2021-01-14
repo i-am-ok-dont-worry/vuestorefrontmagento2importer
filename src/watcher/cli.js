@@ -83,6 +83,21 @@ program.command('clear')
         try {
             const worker = new Worker();
             await worker.clear();
+            const mage = new JobManager();
+            await mage.clearFake();
+            process.exit(0);
+        } catch (e) {
+            console.error('Cannot remove stuck jobs: ', e.message);
+            process.exit(1);
+        }
+    });
+
+program.command('cache-clear')
+    .option('--prefix <prefix>', 'Prefix')
+    .action(async () => {
+        try {
+            const jobManager = new JobManager();
+            await jobManager.clearCache(cmd.prefix);
             process.exit(0);
         } catch (e) {
             console.error('Cannot remove stuck jobs: ', e.message);

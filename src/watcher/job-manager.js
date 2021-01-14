@@ -5,11 +5,6 @@ const client = Redis.createClient({ ...config.redis });
 const difference = require('lodash/difference');
 const isEmpty = require('lodash/isEmpty');
 const kue = require('kue');
-const TagCache = require('redis-tag-cache').default;
-const cache = new TagCache({
-    redis: config.redis,
-    defaultTimeout: 86400
-});
 
 class JobManager {
 
@@ -67,6 +62,52 @@ class JobManager {
     }
 
     /**
+     * Clears redis cache for reindexed entity
+     * @returns {Promise<void>}
+     */
+    clearCache (prefix) {
+        return new Promise((resolve, reject) => {
+            client.keys(`tags:${prefix}*`, async (err, keys) => {
+                const deletePromise = (key) => new Promise((resolve, reject) => {
+                    client.del(key, (err) => {
+                       if (err) { resolve(); }
+                       else { resolve(); }
+                    });
+                });
+                const membersPromise = (tag) => new Promise((resolve, reject) => {
+                    client.smembers(`tags:${tag}`, async (err, data) => {
+                        if (data) {
+                            if (data instanceof Array) {
+                                for (const d of data) {
+                                    await deletePromise(d);
+                                }
+                            } else {
+                                await deletePromise(data);
+                            }
+                        }
+
+                        resolve();
+                    });
+                });
+
+                if (keys && keys instanceof Array) {
+                    for (const key of keys) {
+                        try {
+                            const tag = key.split(':')[1];
+                            await membersPromise(tag);
+                            await deletePromise(key);
+                            console.log(`Cache cleared for prefix: `, prefix)
+                        } catch (e) {}
+                    }
+                }
+
+                console.log(`Cache cleared for prefix: `, prefix);
+                resolve();
+            });
+        });
+    }
+
+    /**
      * Clears status metadata
      * @param entity
      * @param ids
@@ -75,13 +116,11 @@ class JobManager {
     clearJobMetadata ({ entity, ids }) {
         console.log('Clearing job metadata: ', entity, ids);
         const invalidateCache = async () => {
-            for (let id of ids) {
-                try {
-                     const prefix = entity.indexOf(0).toUpperCase();
-                     await cache.invalidate(`${prefix}${id}`);
-                     console.log('Invalidated cache tag: ', `${prefix}${id}`);
-                } catch (e) {}
-            }
+            try {
+                 const prefix = entity.indexOf(0).toUpperCase();
+                 await this.clearCache(prefix);
+                 await this.clearCache(prefix.toLowerCase());
+            } catch (e) {}
         };
 
         return new Promise(async (resolve, reject) => {

@@ -96,6 +96,9 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     preProcessItem(item) {
         return this.api.productsNew.single(item.sku)
             .then(async (product) => {
+                if (product.hasOwnProperty('original_price')) {
+                    debugger;
+                }
                 this.mapCustomAttributesToObjectRoot(product);
                 this.processStocks(product);
                 this.processMedia(product);
