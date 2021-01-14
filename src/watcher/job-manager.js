@@ -90,27 +90,32 @@ class JobManager {
                     });
                 });
 
-                client.keys('data:catalog:*', async (err, catKeys) => {
-                    if (catKeys && catKeys instanceof Array) {
-                        for (const ckey of catKeys) {
-                            try {
-                                await deletePromise(ckey);
-                            } catch (e) {}
+                const catalogToPromise = () => new Promise((resolve, reject) => {
+                    client.keys('data:catalog:*', async (err, catKeys) => {
+                        if (catKeys && catKeys instanceof Array) {
+                            for (const ckey of catKeys) {
+                                console.log('Deleting: ', ckey);
+                                try {
+                                    await deletePromise(ckey);
+                                } catch (e) {}
+                            }
                         }
-                    }
-
-                    if (keys && keys instanceof Array) {
-                        for (const key of keys) {
-                            try {
-                                const tag = key.split(':')[1];
-                                await membersPromise(tag);
-                                await deletePromise(key);
-                                console.log(`Cache cleared for prefix: `, prefix)
-                            } catch (e) {}
-                        }
-                    }
+                        resolve();
+                    });
                 });
 
+                if (keys && keys instanceof Array) {
+                    for (const key of keys) {
+                        try {
+                            const tag = key.split(':')[1];
+                            await membersPromise(tag);
+                            await deletePromise(key);
+                            console.log(`Cache cleared for prefix: `, prefix)
+                        } catch (e) {}
+                    }
+                }
+
+                await catalogToPromise();
                 console.log(`Cache cleared for prefix: `, prefix);
                 resolve();
             });
