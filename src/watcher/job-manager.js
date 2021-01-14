@@ -68,6 +68,8 @@ class JobManager {
     clearCache (prefix) {
         return new Promise((resolve, reject) => {
             client.keys(`tags:${prefix}*`, async (err, keys) => {
+                console.log('Flushing cache tags: ', keys);
+
                 const deletePromise = (key) => new Promise((resolve, reject) => {
                     client.del(key, (err) => {
                        if (err) { resolve(); }
@@ -94,7 +96,6 @@ class JobManager {
                     client.keys('data:catalog:*', async (err, catKeys) => {
                         if (catKeys && catKeys instanceof Array) {
                             for (const ckey of catKeys) {
-                                console.log('Deleting: ', ckey);
                                 try {
                                     await deletePromise(ckey);
                                 } catch (e) {}
@@ -110,7 +111,6 @@ class JobManager {
                             const tag = key.split(':')[1];
                             await membersPromise(tag);
                             await deletePromise(key);
-                            console.log(`Cache cleared for prefix: `, prefix)
                         } catch (e) {}
                     }
                 }
@@ -132,10 +132,12 @@ class JobManager {
         console.log('Clearing job metadata: ', entity, ids);
         const invalidateCache = async () => {
             try {
-                 const prefix = entity.indexOf(0).toUpperCase();
+                 const prefix = entity.charAt(0).toUpperCase();
                  await this.clearCache(prefix);
                  await this.clearCache(prefix.toLowerCase());
-            } catch (e) {}
+            } catch (e) {
+
+            }
         };
 
         return new Promise(async (resolve, reject) => {
