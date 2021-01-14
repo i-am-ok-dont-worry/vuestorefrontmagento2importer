@@ -94,13 +94,13 @@ program.command('clear')
 
 program.command('cache-clear')
     .option('--prefix <prefix>', 'Prefix')
-    .action(async () => {
+    .action(async (cmd) => {
         try {
             const jobManager = new JobManager();
             await jobManager.clearCache(cmd.prefix);
             process.exit(0);
         } catch (e) {
-            console.error('Cannot remove stuck jobs: ', e.message);
+            console.error('Cannot clear cache: ', e.message);
             process.exit(1);
         }
     });
