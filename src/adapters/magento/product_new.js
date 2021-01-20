@@ -234,7 +234,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                             confChild.special_price = confChild.final_price;
                         }
 
-                        if(this.config.product.renderCatalogRegularPrices) {
+                        if (this.config.product.renderCatalogRegularPrices) {
                             confChild.price = confChild.regular_price;
                         }
 
@@ -242,71 +242,16 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                 }
 
                 configurable_children.push(confChild);
-
-                if (item.price  == 0) { // if price is zero fix it with first children
-                    item.price = prOption.price;
-                }
-
-                Object.assign(item, { configurable_children });
-
-                // EXPAND CONFIGURABLE CHILDREN ATTRS
-                if (this.config.product && this.config.product.expandConfigurableFilters) {
-                    for (const attrToExpand of this.config.product.expandConfigurableFilters){
-                        const expandedSet = new Set();
-                        if (item[attrToExpand]) {
-                            expandedSet.add(item[attrToExpand]);
-                        }
-                        for (const confChild of item.configurable_children) {
-                            if (confChild[attrToExpand]) {
-                                expandedSet.add(confChild[attrToExpand]);
-                            }
-                        }
-                        if (expandedSet.size > 0) {
-                            item[attrToExpand + '_options'] = Array.from(expandedSet);
-                        }
-                    }
-                }
+                Object.assign(item, {configurable_children});
 
                 const configurableOptions = await this.api.configurableOptions.list(item.sku);
-                let subPromises = [];
                 item.configurable_options = configurableOptions;
 
-                for (let option of item.configurable_options) {
-                    let atrKey = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, option.attribute_id);
-                    subPromises.push(new Promise ((resolve, reject) => {
-                        logger.info(`Configurable options for ${atrKey}`);
-                        this.cache.get(atrKey, (err, serializedAtr) => {
-                            let atr = JSON.parse(serializedAtr); // category object
-                            if (atr != null) {
-                                option.attribute_code = atr.attribute_code;
-                                option.values.map((el) => {
-                                    el.label = (attr, optionId) => {
-                                        if (attr) {
-                                            let opt = attr.options.find((op) => {
-                                                if (_.toString(op.value) === _.toString(optionId)) {
-                                                    return op
-                                                }
-                                            });
-                                            return opt ? opt.label : optionId
-                                        } else {
-                                            return optionId
-                                        }
-                                    };
-                                });
-
-                                logger.info(`Product options for ${atr.attribute_code} for ${item.sku} set`);
-                                item[atr.attribute_code + '_options'] = option.values.map((el) => { return el.value_index } )
-                            }
-
-                            resolve(item);
-                        });
-                    }));
-                }
-
-                await Promise.all(subPromises);
+                await this._expandConfigurableOptionsAttributes.bind(this)(item);
                 logger.info('Configurable children expanded on product: ', item.sku);
-                return item;
             }
+
+            return item;
         } catch (e) {
             logger.warn(`Unable to retrieve configurable options info`);
             return item;
@@ -360,7 +305,8 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                                 category_id: cat.id,
                                 name: cat.name,
                                 slug: cat.slug,
-                                path: cat.url_path
+                                path: cat.url_path,
+                                level: cat.level
                             })
                         } else {
                             resolve({
@@ -373,6 +319,45 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         }
 
         return await Promise.all(catPromises);
+    }
+
+    async _expandConfigurableOptionsAttributes (item) {
+        const subPromises = [];
+        for (let option of item.configurable_options) {
+            let atrKey = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, option.attribute_id);
+            subPromises.push(new Promise((resolve, reject) => {
+                logger.info(`Configurable options for ${atrKey}`);
+                this.cache.get(atrKey, (err, serializedAtr) => {
+                    let atr = JSON.parse(serializedAtr); // category object
+                    if (atr != null) {
+                        option.attribute_code = atr.attribute_code;
+                        option.values.map((el) => {
+                            el.label = (attr, optionId) => {
+                                if (attr) {
+                                    let opt = attr.options.find((op) => {
+                                        if (_.toString(op.value) === _.toString(optionId)) {
+                                            return op
+                                        }
+                                    });
+                                    return opt ? opt.label : optionId
+                                } else {
+                                    return optionId
+                                }
+                            };
+                        });
+
+                        logger.info(`Product options for ${atr.attribute_code} for ${item.sku} set`);
+                        item[atr.attribute_code + '_options'] = option.values.map((el) => {
+                            return el.value_index;
+                        })
+                    }
+
+                    resolve(item);
+                });
+            }));
+        }
+
+        await Promise.all(subPromises);
     }
 
     /**
