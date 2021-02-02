@@ -102,6 +102,7 @@ class AbstractAdapter {
     this.db.connect(async () => {
       logger.info('Connected correctly to server');
       logger.info(`TRANSACTION KEY = ${this.current_context.transaction_key}`);
+      this.current_context.db = this.db;
 
       this.onDone = this.current_context.done_callback ? (
         () => {

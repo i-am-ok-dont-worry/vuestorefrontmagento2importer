@@ -9,6 +9,22 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     constructor (config) {
         super(config);
         this.use_paging = true;
+        this.attributes = {};
+    }
+
+    async fetchAttributes () {
+        if (this.attributes && Object.keys(this.attributes).length) {
+            return this.attributes;
+        } else {
+            return this.api.attributes.list()
+                .then((response) => {
+                    const mappedAttributes = response.items.reduce((acc, next) => {
+                        return { ...acc, [next.attribute_code]: next };
+                    }, {});
+                    this.attributes = mappedAttributes;
+                    return mappedAttributes;
+                });
+        }
     }
 
     getEntityType () {
@@ -96,25 +112,16 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     preProcessItem(item) {
         return this.api.productsNew.single(item.sku)
             .then(async (product) => {
-                if (product.hasOwnProperty('original_price')) {
-                    debugger;
-                }
-                this.mapCustomAttributesToObjectRoot(product);
                 this.processStocks(product);
                 this.processMedia(product);
                 this.processBundleOptions(product);
+                await this.processAttributes(product);
                 await this.processConfigurableOptions(product);
                 await this.processCategories(product);
 
                 logger.info(`Product ${product.sku} imported`);
                 return product;
             });
-    }
-
-    mapCustomAttributesToObjectRoot (item) {
-        for (let customAttribute of item.custom_attributes || []) {
-            Object.assign(item, { [customAttribute.attribute_code]: customAttribute.value });
-        }
     }
 
     /**
@@ -212,6 +219,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                     name: prOption.name,
                     price: prOption.price,
                     tier_prices: prOption.tier_prices,
+                    ...(prOption.special_price && { special_price: prOption.special_price }),
                 };
 
                 if (prOption.custom_attributes) {
@@ -397,6 +405,40 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         }
 
         return videoData;
+    }
+
+    mapCustomAttributesToObjectRoot (item) {
+        for (let customAttribute of item.custom_attributes || []) {
+            Object.assign(item, { [customAttribute.attribute_code]: customAttribute.value });
+        }
+    }
+
+    /**
+     * Processes custom product attributes
+     * It will split multi-select type attributes into tokens
+     * and rewrites attributes from array to document root
+     * @param {Product} product
+     * @returns {Promise<Product>}
+     */
+    async processAttributes (product) {
+        let attributesMap = {};
+        try { attributesMap = await this.fetchAttributes(); } catch (e) {
+            console.warn('Cannot fetch magento attributes metadata');
+        }
+
+        for (let customAttribute of product.custom_attributes || []) {
+            const attributeMetadata = attributesMap[customAttribute.attribute_code];
+            let attributeValue = customAttribute.value;
+            if (attributeMetadata.frontend_input === 'multiselect') {
+                try {
+                    attributeValue = attributeValue.split(',');
+                } catch (e) {}
+            }
+
+            Object.assign(product, { [customAttribute.attribute_code]: attributeValue });
+        }
+
+        delete product['custom_attributes'];
     }
 }
 
