@@ -30,6 +30,7 @@ class ReindexJobCreator {
         const shouldAbort = this[_shouldAbort](ids, allowedJobs);
 
         if (shouldAbort) { return Promise.resolve(); }
+        await this._jobManager.enqueueReindexForEntity({ entity, ids });
 
         return this[_createJobDataFunc]({ entity, ids, priority, allowedJobs });
     };
@@ -40,12 +41,12 @@ class ReindexJobCreator {
                 title: `mage import`,
                 data: {
                     entity,
-                    ...(ids && ids.length && { ids })
+                    // ...(ids && ids.length && { ids })
                 }
             };
 
             if (allowedJobs) { jobData.data.ids = allowedJobs }
-            if (ids.includes('full')) { delete jobData.data.ids; }
+            // if (ids.includes('full')) { delete jobData.data.ids; }
 
             const job = queue.create('i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
                 .removeOnComplete( true )
@@ -54,7 +55,7 @@ class ReindexJobCreator {
                 .save(async (err) => {
                     if (err) { reject(err); }
                     else {
-                        await this._jobManager.saveJob({ entity, ids, jobId: job.id });
+                        // await this._jobManager.saveJob({ entity, ids, jobId: job.id });
                         resolve();
                     }
                 });

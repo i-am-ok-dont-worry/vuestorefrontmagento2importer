@@ -25,12 +25,22 @@ class Worker {
      */
     start(callback) {
         queue.process('i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
-            console.warn('Processing: ', JSON.stringify(job.data));
             try {
+                const entity = job.data.data.entity;
+                const ids = await this.manager.getQueuedIdsForEntity({ entity });
+                if (!ids || (ids instanceof Array && ids.length === 0)) {
+                    done();
+                    return;
+                }
+
+                console.warn('Processing: ', JSON.stringify(job.data));
+
                 this.busy = true;
                 this.ctx = ctx;
-                await this[_process]({ ...job.data });
-                await this.manager.clearJobMetadata({ entity: job.data.data.entity, ids: job.data.data.ids });
+                await this[_process]({ data: { entity, ids }});
+                await this.manager.clearReindexQueueForEntity({ entity, ids });
+
+                console.log('Done', entity, 'for ids: ', ids);
                 safeCallback(callback);
                 done();
             } catch (e) {

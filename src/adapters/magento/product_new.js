@@ -112,6 +112,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     preProcessItem(item) {
         return this.api.productsNew.single(item.sku)
             .then(async (product) => {
+                debugger
                 this.processStocks(product);
                 this.processMedia(product);
                 this.processBundleOptions(product);
