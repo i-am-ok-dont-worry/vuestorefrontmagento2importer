@@ -77,12 +77,13 @@ class CategoryAdapter extends AbstractMagentoAdapter {
       }
 
       item.slug = item.url_key;
+      item.url_path = item.url_key;
 
-      if (this.config.seo.useUrlDispatcher) {
+      /*if (this.config.seo.useUrlDispatcher) {
         item.url_path = this.config.seo.categoryUrlPathMapper(item)
       } else {
         item.url_path = item.url_key;
-      }
+      }*/
 
       if (this.extendedCategories) {
         this.api.categories.getSingle(item.id).then((result) => {
