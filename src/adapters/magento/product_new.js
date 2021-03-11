@@ -112,6 +112,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     preProcessItem(item) {
         return this.api.productsNew.single(item.sku)
             .then(async (product) => {
+                debugger
                 this.processStocks(product);
                 this.processMedia(product);
                 this.processBundleOptions(product);
@@ -138,7 +139,11 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                 is_in_stock: stock_item.is_in_stock,
                 min_qty: stock_item.min_qty,
                 min_sale_qty: stock_item.min_sale_qty,
-                max_sale_qty: stock_item.max_sale_qty
+                max_sale_qty: stock_item.max_sale_qty,
+                backorders: stock_item.backorders,
+                qty_increments: stock_item.qty_increments,
+                enable_qty_increments: stock_item.enable_qty_increments,
+                low_stock_date: stock_item.low_stock_date
             };
 
             Object.assign(item, { stock });

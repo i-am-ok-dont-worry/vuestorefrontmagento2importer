@@ -61,6 +61,44 @@ class JobManager {
         });
     }
 
+    async enqueueReindexForEntity ({ entity, ids }) {
+        const saddToPromise = (id) => new Promise((resolve, reject) => {
+            client.sadd(`i:${entity}:queue`, id, (err) => {
+                if (err) reject();
+                else resolve();
+            });
+        });
+
+        return new Promise(async (resolve, reject) => {
+            for (let id of ids) {
+                try { await saddToPromise(id); } catch (e) {
+                    console.warn('Error while adding promise: ', e);
+                    reject(e);
+                }
+            }
+
+            resolve();
+        });
+    }
+
+    async clearReindexQueueForEntity ({ entity, ids }) {
+        return new Promise((resolve, reject) => {
+            client.srem(`i:${entity}:queue`, ...ids, (err) => {
+                if (err) reject();
+                else resolve();
+            });
+        });
+    }
+
+    async getQueuedIdsForEntity({ entity }) {
+        return new Promise((resolve, reject) => {
+            client.smembers(`i:${entity}:queue`, (err, members) => {
+                if (err) reject();
+                else resolve(members);
+            });
+        });
+    }
+
     /**
      * Clears redis cache for reindexed entity
      * @returns {Promise<void>}
