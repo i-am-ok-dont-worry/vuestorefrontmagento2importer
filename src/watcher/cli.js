@@ -1,4 +1,4 @@
-{const program = require('commander');
+const program = require('commander');
 const Creator = require('./creator');
 const Worker = require('./worker');
 const JobManager = require('./job-manager');
