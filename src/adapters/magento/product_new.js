@@ -214,6 +214,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         try {
             const children = await this.api.configurableChildren.list(item.sku);
             const configurable_children = new Array();
+            const minPrice = Math.min(...(children || []).map(({ price }) => price || 0));
 
             for (let prOption of children) {
                 let confChild = {
@@ -263,6 +264,8 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                 await this._expandConfigurableOptionsAttributes.bind(this)(item);
                 logger.info('Configurable children expanded on product: ', item.sku);
             }
+
+            if (minPrice) { item.price = minPrice; }
 
             return item;
         } catch (e) {

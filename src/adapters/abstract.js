@@ -239,7 +239,6 @@ class AbstractAdapter {
               this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), (err, res) => {
                 if (err) {
                   logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
-                  process.exit(0);
                 }
               });
             } else {
