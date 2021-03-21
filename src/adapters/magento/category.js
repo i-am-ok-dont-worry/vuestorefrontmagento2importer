@@ -16,12 +16,14 @@ const _normalizeExtendedData = function (result, generateUrlKey = true, config =
   if (generateUrlKey) {
     result.url_key = _slugify(result.name) + '-' + result.id;
   }
-  result.slug = result.url_key
-  if (config.seo.useUrlDispatcher) {
+  /*if (config.seo.useUrlDispatcher) {
     result.url_path = config.seo.categoryUrlPathMapper(result)
   } else {
     result.url_path = result.url_key;
-  }
+  }*/
+
+  item.slug = item.url_key;
+  item.url_path = item.url_key;
   return result
 }
 
