@@ -13,17 +13,9 @@ const _normalizeExtendedData = function (result, generateUrlKey = true, config =
     }
     delete result.custom_attributes;
   }
-  if (generateUrlKey) {
-    result.url_key = _slugify(result.name) + '-' + result.id;
-  }
-  /*if (config.seo.useUrlDispatcher) {
-    result.url_path = config.seo.categoryUrlPathMapper(result)
-  } else {
-    result.url_path = result.url_key;
-  }*/
 
-  item.slug = item.url_key;
-  item.url_path = item.url_key;
+  result.slug = result.url_key;
+  result.url_path = result.url_key;
   return result
 }
 
@@ -74,18 +66,8 @@ class CategoryAdapter extends AbstractMagentoAdapter {
         return done(item);
       }
 
-      if (!item.url_key || this.generateUniqueUrlKeys) {
-        item.url_key = _slugify(item.name) + '-' + item.id
-      }
-
       item.slug = item.url_key;
       item.url_path = item.url_key;
-
-      /*if (this.config.seo.useUrlDispatcher) {
-        item.url_path = this.config.seo.categoryUrlPathMapper(item)
-      } else {
-        item.url_path = item.url_key;
-      }*/
 
       if (this.extendedCategories) {
         this.api.categories.getSingle(item.id).then((result) => {
