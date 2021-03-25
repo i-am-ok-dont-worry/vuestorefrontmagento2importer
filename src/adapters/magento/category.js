@@ -15,7 +15,7 @@ const _normalizeExtendedData = function (result, generateUrlKey = true, config =
   }
 
   result.slug = result.url_key;
-  result.url_path = result.url_key;
+  result.url_path = result.url_path;
   return result
 }
 
@@ -67,7 +67,7 @@ class CategoryAdapter extends AbstractMagentoAdapter {
       }
 
       item.slug = item.url_key;
-      item.url_path = item.url_key;
+      item.url_path = item.url_path;
 
       if (this.extendedCategories) {
         this.api.categories.getSingle(item.id).then((result) => {
