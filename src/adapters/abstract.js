@@ -143,7 +143,7 @@ class AbstractAdapter {
   cleanUp(transaction_key) {
     this.db.connect(() => {
       logger.info(`Cleaning up with tsk = ${transaction_key}`);
-      this.db.cleanupByTransactionkey(this.getCollectionName(true), transaction_key);
+      // this.db.cleanupByTransactionkey(this.getCollectionName(true), transaction_key);
     });
   }
 

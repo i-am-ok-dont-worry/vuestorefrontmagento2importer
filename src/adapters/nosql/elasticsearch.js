@@ -194,7 +194,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    * @param {string} collectionName
    * @returns {Promise<{ id: string, sku: string }[]>}
    */
-  async getProductSkus (collectionName = 'vue_storefront_catalog_product') {
+  async getProductSkus (collectionName = 'product') {
     let output = [];
     let scrollId;
     let scrollSize = 0;

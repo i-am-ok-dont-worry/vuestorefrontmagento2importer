@@ -48,7 +48,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
             query += 'searchCriteria[filter_groups][0][filters][0][field]=entity_id&' +
                 'searchCriteria[filter_groups][0][filters][0][value]=' + encodeURIComponent(context.ids.join(',')) + '&' +
                 'searchCriteria[filter_groups][0][filters][0][condition_type]=in';
-        }else if (context.skus && context.skus.length > 0) { // pull individual products by skus
+        } else if (context.skus && context.skus.length > 0) { // pull individual products by skus
             if (!Array.isArray(context.skus))
                 context.skus = new Array(context.skus);
 
