@@ -38,6 +38,7 @@ class StockAdapter extends AbstractMagentoAdapter {
 
         if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
             skus = await productCache.getProductsSkus(context.ids);
+            skus = skus.map(sku => ({ sku }));
         }
 
         /*if (await productCache.doesCacheExists()) {
