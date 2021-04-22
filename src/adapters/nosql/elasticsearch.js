@@ -257,7 +257,8 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
        return { docs };
       } catch (e) {
-        throw new Error('Unable to fetch product info');
+        // throw new Error('Unable to fetch product info');
+        return { docs: [] };
       }
     };
 
