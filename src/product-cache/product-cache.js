@@ -117,6 +117,17 @@ class ProductCache {
             });
         });
     }
+
+    getProductsSkus(ids) {
+        return new Promise((resolve, reject) => {
+            const factory = new AdapterFactory(config);
+            const es = factory.getAdapter('nosql', config.db.driver);
+            es.connect(async () => {
+                const products = await es.getProductsSkus(ids);
+                resolve(products);
+            });
+        });
+    }
 }
 
 module.exports = new ProductCache();

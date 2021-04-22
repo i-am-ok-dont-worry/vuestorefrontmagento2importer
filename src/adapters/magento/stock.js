@@ -36,7 +36,11 @@ class StockAdapter extends AbstractMagentoAdapter {
     async getSourceData(context) {
         let skus = [];
 
-        if (await productCache.doesCacheExists()) {
+        if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
+            skus = await productCache.getProductsSkus(context.ids);
+        }
+
+        /*if (await productCache.doesCacheExists()) {
             skus = await productCache.getProductSkus();
         } else {
             skus = await productCache.recreateFromElasticSearch();
@@ -48,7 +52,9 @@ class StockAdapter extends AbstractMagentoAdapter {
             return skus.filter(({ sku }) => context.skus.includes(sku));
         } else {
             return skus;
-        }
+        }*/
+
+        return skus;
     }
 
     async preProcessItem(item) {

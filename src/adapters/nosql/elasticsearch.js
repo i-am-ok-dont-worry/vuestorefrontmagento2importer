@@ -273,6 +273,28 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
     return output;
   }
 
+  async getProductsSkus(ids = []) {
+    return new Promise((resolve, reject) => {
+      const searchQueryBody = {
+        index: this.getPhysicalIndexName('product', this.config),
+        body: {
+          query: { terms: { id: ids } },
+          sort: [{ "id": "asc" }],
+          size: 1000
+        }
+      };
+
+      this.db.search(searchQueryBody, (err, res) => {
+        try {
+          const hits = res['body']['hits']['hits'];
+          resolve(hits.map(h => h['_source']['sku']));
+        } catch (e) {
+          resolve([]);
+        }
+      });
+    });
+  }
+
   /**
    * Connect / prepare driver
    * @param {Function} done callback to be called after connection is established
