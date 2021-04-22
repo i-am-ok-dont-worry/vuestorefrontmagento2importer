@@ -133,7 +133,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     processPrice (item) {
         try {
             if (!item.hasOwnProperty('special_price')) {
-                item.special_price = null;
+                item.special_price = 0;
             }
         } catch (e) {}
 

@@ -98,10 +98,10 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
       body: {
         // put the partial document under the `doc` key
         upsert: itemtbu,
-        doc: itemtbu,
-        detect_noop: false
+        doc: itemtbu
       }
-    }
+    };
+
     if (parseInt(this.config.elasticsearch.apiVersion) < 6)
       updateRequestBody.type = this.getPhysicalTypeName(collectionName, this.config)
 
