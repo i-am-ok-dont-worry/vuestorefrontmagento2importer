@@ -112,7 +112,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     preProcessItem(item) {
         return this.api.productsNew.single(item.sku)
             .then(async (product) => {
-                this.processPrice(item);
+                this.processPrice(product);
                 this.processStocks(product);
                 this.processMedia(product);
                 this.processBundleOptions(product);
@@ -133,7 +133,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     processPrice (item) {
         try {
             if (!item.hasOwnProperty('special_price')) {
-                item.special_price = 0;
+                item.special_price = null;
             }
         } catch (e) {}
 
