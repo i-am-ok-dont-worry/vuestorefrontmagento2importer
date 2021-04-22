@@ -178,10 +178,13 @@ class ReindexExecutor {
      * @param context
      */
     [_handleCategoriesReindex](context) {
-        return this[_exec]('node', [
+        /*return this[_exec]('node', [
             '--harmony',
             __dirname + '/../cli.js',
             'categories',
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });*/
+        return this[_exec]('./bin/mage-rust-importer', [
+            'category'
         ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
     }
 
