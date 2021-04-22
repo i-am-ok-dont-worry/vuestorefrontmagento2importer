@@ -5,6 +5,7 @@ const program = require('commander');
 const fs = require('fs');
 const path = require('path');
 let AdapterFactory = require('./adapters/factory');
+const spawn = require('child_process').spawn;
 
 const TIME_TO_EXIT = process.env.TIME_TO_EXIT ? process.env.TIME_TO_EXIT : 2000; // wait 30s before quiting after task is done
 
@@ -185,7 +186,42 @@ const reindexProductCategories = (adapterName) => {
       }
     });
   });
-}
+};
+
+/**
+ * Exec to promise
+ * @param cmd
+ * @param args
+ * @param opts
+ * @returns {Promise<unknown>}
+ */
+const exec = (cmd, args, opts) => {
+  return new Promise((resolve, reject) => {
+    let child = spawn(cmd, args, opts);
+
+    child.stdout.on('data', (data) => {
+      console.log(data.toString('utf8'));
+    });
+
+    child.stderr.on('data', (data) => {
+      console.log(data.toString('utf8'));
+    });
+
+    child.on('close', (code) => {
+      resolve(code);
+    });
+
+    child.on('exit', (code) => {
+      resolve(code);
+    });
+
+    child.on('error', (error) => {
+      console.warn('Error: ', error);
+      reject(error)
+    });
+  })
+};
+
 
 function reindexStocks(adapterName, skus, page = null, maxActiveJobs = 1, ids) {
   return new Promise((resolve, reject) => {
@@ -438,6 +474,63 @@ program
       reindexProducts(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page, cmd.maxActiveJobs, cmd.ids);
     }
   });
+
+program
+    .command('products-next')
+    .option('--ids <ids>')
+    .option('--config <config>', 'Config file location', 'config/config.json')
+    .action(async (cmd) => {
+      const cwd = process.cwd();
+      const command = `${cwd}/mage2rustimporter/target/debug/mage-rust-importer`;
+      const args = ['product'];
+
+      if (cmd.ids && cmd.ids.length) {
+        args.push(`--ids=${cmd.ids}`);
+      }
+      if (cmd.config && cmd.config.length) {
+        args.push(`--config=${cmd.config}`);
+      }
+
+      await exec(command, args, { env: { RUST_LOG: 'info' } });
+      process.exit();
+    });
+
+program
+    .command('categories-next')
+    .option('--ids <ids>')
+    .option('--config <config>', 'Config file location', 'config/config.json')
+    .action(async (cmd) => {
+      const cwd = process.cwd();
+      const command = `${cwd}/mage2rustimporter/target/debug/mage-rust-importer`;
+      const args = ['category'];
+
+      if (cmd.ids && cmd.ids.length) {
+        args.push(`--ids=${cmd.ids}`);
+      }
+      if (cmd.config && cmd.config.length) {
+        args.push(`--config=${cmd.config}`);
+      }
+
+      console.warn('C: ', args);
+      await exec(command, args, { env: { RUST_LOG: 'info' } });
+      process.exit();
+    });
+
+program
+    .command('attribute-next')
+    .option('--config <config>', 'Config file location', 'config/config.json')
+    .action(async (cmd) => {
+      const cwd = process.cwd();
+      const command = `${cwd}/mage2rustimporter/target/debug/mage-rust-importer`;
+      const args = ['attribute'];
+
+      if (cmd.config && cmd.config.length) {
+        args.push(`--config=${cmd.config}`);
+      }
+
+      await exec(command, args, { env: { RUST_LOG: 'info' } });
+      process.exit();
+    });
 
 program
     .command('stocks')
