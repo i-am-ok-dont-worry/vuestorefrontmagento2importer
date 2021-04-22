@@ -186,7 +186,7 @@ class ReindexExecutor {
         return this[_exec]('./bin/mage-rust-importer', [
             'category',
             '--config=config/config.json',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env ? { ...this.env, RUST_LOG: 'info' } : process.env });
     }
 
     /**
