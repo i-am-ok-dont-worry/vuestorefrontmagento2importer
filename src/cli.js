@@ -433,7 +433,8 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', (value) => value.split(','))
   .option('--ids <ids>', 'atrributes ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexAttributes(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
+    let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
+    await reindexAttributes(cmd.adapter || 'magento', cmd.removeNonExistent, ids);
   });
 
 program
@@ -445,7 +446,8 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 6)
   .option('--ids <ids>', 'categories ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexCategories(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs, cmd.ids);
+    let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
+    await reindexCategories(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.extendedCategories, cmd.generateUniqueUrlKeys, cmd.maxActiveJobs, ids);
   });
 
 program
@@ -464,73 +466,12 @@ program
   .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh information from', (value) => value.split(','))
   .option('--ids <ids>', 'comma delimited list of IDs to fetch fresh information from', (value) => value.split(','))
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
-  .option('--updatedAfter <updatedAfter>', 'timestamp to start the synchronization from', '')
   .option('--page <page>', 'start from specific page', null)
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
   .action((cmd) => {
-    if (cmd.updatedAfter) {
-      reindexProducts(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, new Date(cmd.updatedAfter), cmd.page, cmd.maxActiveJobs, cmd.ids);
-    } else {
-      reindexProducts(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page, cmd.maxActiveJobs, cmd.ids);
-    }
+    let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
+    reindexProducts(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.partitions, cmd.partitionSize, cmd.initQueue, cmd.skus, null, cmd.page, cmd.maxActiveJobs, ids);
   });
-
-program
-    .command('products-next')
-    .option('--ids <ids>')
-    .option('--config <config>', 'Config file location', 'config/config.json')
-    .action(async (cmd) => {
-      const cwd = process.cwd();
-      const command = `${cwd}/mage2rustimporter/target/debug/mage-rust-importer`;
-      const args = ['product'];
-
-      if (cmd.ids && cmd.ids.length) {
-        args.push(`--ids=${cmd.ids}`);
-      }
-      if (cmd.config && cmd.config.length) {
-        args.push(`--config=${cmd.config}`);
-      }
-
-      await exec(command, args, { env: { RUST_LOG: 'info' } });
-      process.exit();
-    });
-
-program
-    .command('categories-next')
-    .option('--ids <ids>')
-    .option('--config <config>', 'Config file location', 'config/config.json')
-    .action(async (cmd) => {
-      const cwd = process.cwd();
-      const command = `${cwd}/mage2rustimporter/target/debug/mage-rust-importer`;
-      const args = ['category'];
-
-      if (cmd.ids && cmd.ids.length) {
-        args.push(`--ids=${cmd.ids}`);
-      }
-      if (cmd.config && cmd.config.length) {
-        args.push(`--config=${cmd.config}`);
-      }
-
-      console.warn('C: ', args);
-      await exec(command, args, { env: { RUST_LOG: 'info' } });
-      process.exit();
-    });
-
-program
-    .command('attribute-next')
-    .option('--config <config>', 'Config file location', 'config/config.json')
-    .action(async (cmd) => {
-      const cwd = process.cwd();
-      const command = `${cwd}/mage2rustimporter/target/debug/mage-rust-importer`;
-      const args = ['attribute'];
-
-      if (cmd.config && cmd.config.length) {
-        args.push(`--config=${cmd.config}`);
-      }
-
-      await exec(command, args, { env: { RUST_LOG: 'info' } });
-      process.exit();
-    });
 
 program
     .command('stocks')
@@ -541,7 +482,8 @@ program
     .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs', 1)
     .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
     .action((cmd) => {
-        reindexStocks(cmd.adapter || 'magento', cmd.skus, cmd.page, cmd.maxActiveJobs, cmd.ids);
+      let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
+      reindexStocks(cmd.adapter || 'magento', cmd.skus, cmd.page, cmd.maxActiveJobs, ids);
     });
 
 program
@@ -561,8 +503,9 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', 1)
   .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexTaxRules(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
-  })
+    let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
+    await reindexTaxRules(cmd.adapter || 'magento', cmd.removeNonExistent, ids);
+  });
 
 /**
 * Sync cms blocks
@@ -574,8 +517,9 @@ program
   .option('--maxActiveJobs <maxActiveJobs>', 'maximum active jobs processing categories', (value) => value.split(','))
   .option('--ids <ids>', 'blocks ids', 1)
   .action(async (cmd) => {
-    await reindexBlocks(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
-  })
+    let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
+    await reindexBlocks(cmd.adapter || 'magento', cmd.removeNonExistent, ids);
+  });
 
 program
   .command('pages')
@@ -583,7 +527,8 @@ program
   .option('--removeNonExistent <removeNonExistent>', 'remove non existent products', false)
   .option('--ids <ids>', 'pages ids', (value) => value.split(','))
   .action(async (cmd) => {
-    await reindexPages(cmd.adapter || 'magento', cmd.removeNonExistent, cmd.ids);
+    let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
+    await reindexPages(cmd.adapter || 'magento', cmd.removeNonExistent, ids);
   });
 
 program
@@ -617,16 +562,7 @@ program
       } catch (err) {
         console.log('Error writing index meta!', err)
       }
-    })
-
-/*program
-  .command('productsworker')
-  .option('--adapter <adapter>', 'name of the adapter', 'magento')
-  .option('--partitions <partitions>', 'number of partitions', 1)
-  .option('--ids <ids>', 'tax rules ids', (value) => value.split(','))
-  .action((cmd) => {
-    runProductsworker(cmd.adapter, cmd.partitions);
-  })*/
+    });
 
 program
   .on('command:*', () => {

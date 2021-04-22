@@ -6,19 +6,6 @@ const util = require('util');
 const request = require('request');
 const _slugify = require('../../helpers/slugify');
 
-const _normalizeExtendedData = function (result, generateUrlKey = true, config = null) {
-  if (result.custom_attributes) {
-    for (let customAttribute of result.custom_attributes) { // map custom attributes directly to document root scope
-      result[customAttribute.attribute_code] = customAttribute.value;
-    }
-    delete result.custom_attributes;
-  }
-
-  result.slug = result.url_key;
-  result.url_path = result.url_path;
-  return result
-}
-
 class CategoryAdapter extends AbstractMagentoAdapter {
 
   constructor (config) {
@@ -55,8 +42,14 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     return false;
   }
 
-  _addSingleCategoryData(item, result) {
-    item = Object.assign(item, _normalizeExtendedData(result, this.generateUniqueUrlKeys, this.config));
+  expandCustomAttributes (item, result) {
+    if (result ? result.custom_attributes : item.custom_attributes) {
+      for (let customAttribute of result ? result.custom_attributes : item.custom_attributes) {
+        item[customAttribute.attribute_code] = customAttribute.value;
+      }
+      delete item['custom_attributes'];
+    }
+
     return item;
   }
 
@@ -70,27 +63,9 @@ class CategoryAdapter extends AbstractMagentoAdapter {
       item.url_path = item.url_path;
 
       if (this.extendedCategories) {
-        this.api.categories.getSingle(item.id).then((result) => {
-          item = this._addSingleCategoryData(item, result);
-
-          const key = util.format(CacheKeys.CACHE_KEY_CATEGORY, item.id);
-          logger.info(`Storing extended category data to cache under: ${key}`);
-          this.cache.set(key, JSON.stringify(item));
-
-          if (item.children_data && item.children_data.length) {
-            done(item);
-          } else {
-            done(item);
-          }
-        }).catch(function (err) {
-          logger.error(err);
-          reject(err);
-        });
-
+        this.expandCustomAttributes(item);
+        return done(item);
       } else {
-        const key = util.format(CacheKeys.CACHE_KEY_CATEGORY, item.id);
-        logger.info(`Storing category data to cache under: ${key}`);
-        this.cache.set(key, JSON.stringify(item));
         return done(item);
       }
 
@@ -115,12 +90,6 @@ class CategoryAdapter extends AbstractMagentoAdapter {
    * @param {object} item  document to be updated in elastic search
    */
   normalizeDocumentFormat(item) {
-    if (this.config.vuestorefront && this.config.vuestorefront.invalidateCache) {
-      request(this.config.vuestorefront.invalidateCacheUrl + 'C' + item.id, {}, (err, res, body) => {
-        if (err) { return console.error(err); }
-        console.log(body);
-      });
-    }
     return item;
   }
 }

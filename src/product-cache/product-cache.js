@@ -105,8 +105,10 @@ class ProductCache {
                 // Stringify objects so they can be stored under redis set
                 client.sadd('i:product-skus', skusIdsPairs.map(obj => JSON.stringify(obj)), (err) => {
                     if (err) {
-                        throw new Error(`Cannot recreate cache from ES`);
-                        process.exit(1);
+                        // throw new Error(`Cannot recreate cache from ES`);
+                        // process.exit(1);
+                        logger.info(`Cannot recreate cache from ES. Elasticsearch returned empty results`);
+                        resolve([]);
                     } else {
                         logger.info(`Cache recreated from existing ES index '${collectionName}'`);
                         resolve(skusIdsPairs);
