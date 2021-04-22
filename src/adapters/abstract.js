@@ -237,14 +237,16 @@ class AbstractAdapter {
               this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), (err, res) => {
                 if (err) {
                   logger.error(`Error while updating document of type ${this.getCollectionName(true)}. Id: ${item.id}` + res.body ? res.body.error.reason : JSON.stringify(res));
+                } else {
+                  this.index++;
+                  done();
                 }
               });
             } else {
+              this.index++;
+              done();
               logger.info('Skipping database update');
             }
-
-            this.index++;
-            done();
           })
           .catch((reason) => {
             logger.error(reason);

@@ -110,18 +110,15 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
       id: item.id
     };
 
+    const update = () => {
+      this.db.update(updateRequestBody, function (update_error, update_response) {
+        callback(update_error, update_response);
+      });
+    };
+
     this.db.delete(deleteRequestBody, function (error, response) {
-        this.db.update(updateRequestBody, function (error, response) {
-          callback(error, response);
-        });
+      update();
     });
-/*
-    this.db.update(updateRequestBody, function (error, response) {
-      callback(error, response);
-      // if (error) {
-      //  throw new Error(error);
-      // }
-    });*/
   }
 
   /**
