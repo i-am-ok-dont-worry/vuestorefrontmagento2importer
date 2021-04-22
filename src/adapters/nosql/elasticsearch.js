@@ -105,12 +105,23 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
     if (parseInt(this.config.elasticsearch.apiVersion) < 6)
       updateRequestBody.type = this.getPhysicalTypeName(collectionName, this.config)
 
+    const deleteRequestBody = {
+      index: this.getPhysicalIndexName(collectionName, this.config),
+      id: item.id
+    };
+
+    this.db.delete(deleteRequestBody, function (error, response) {
+        this.db.update(updateRequestBody, function (error, response) {
+          callback(error, response);
+        });
+    });
+/*
     this.db.update(updateRequestBody, function (error, response) {
       callback(error, response);
       // if (error) {
       //  throw new Error(error);
       // }
-    });
+    });*/
   }
 
   /**
