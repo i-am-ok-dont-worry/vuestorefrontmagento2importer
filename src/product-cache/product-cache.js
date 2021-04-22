@@ -95,7 +95,7 @@ class ProductCache {
      * Recreates product cache from ElasticSearch
      * @returns {Promise<{ sku: string, id: string }>}
      */
-    recreateFromElasticSearch (collectionName) {
+    recreateFromElasticSearch (collectionName = 'product') {
         return new Promise((resolve) => {
             const factory = new AdapterFactory(config);
             const es = factory.getAdapter('nosql', config.db.driver);
