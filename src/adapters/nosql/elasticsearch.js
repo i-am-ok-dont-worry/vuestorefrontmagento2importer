@@ -90,7 +90,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    * Update single document in database
    * @param {object} item document to be updated in database
    */
-  updateDocument(collectionName, item, callback = () => {}) {
+  updateDocument(collectionName, item, force = false, callback = () => {}) {
     const itemtbu = item;
     const updateRequestBody = {
       index: this.getPhysicalIndexName(collectionName, this.config),
@@ -115,10 +115,18 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
         callback(update_error, update_response);
       });
     };
-
-    this.db.delete(deleteRequestBody, function (error, response) {
+    
+    const deleteAndUpdate = () => {
+      this.db.delete(deleteRequestBody, function (error, response) {
+        update();
+      });
+    };
+    
+    if (force) {
+      deleteAndUpdate();
+    } else {
       update();
-    });
+    }
   }
 
   /**
