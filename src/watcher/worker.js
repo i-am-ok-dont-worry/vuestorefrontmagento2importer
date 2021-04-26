@@ -39,6 +39,7 @@ class Worker {
                 this.ctx = ctx;
                 await this[_process]({ data: { entity, ids }});
                 await this.manager.clearReindexQueueForEntity({ entity, ids });
+                await this.manager.clearJobMetadata({ entity, ids });
 
                 console.log('Done', entity, 'for ids: ', ids);
                 safeCallback(callback);

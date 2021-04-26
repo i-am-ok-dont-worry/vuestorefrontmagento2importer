@@ -14,7 +14,7 @@ class StockAdapter extends AbstractMagentoAdapter {
     }
 
     getSwappedEntityType () {
-        return 'product_new';
+        return 'product';
     }
 
     getName () {

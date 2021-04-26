@@ -106,8 +106,6 @@ class JobManager {
     clearCache (prefix) {
         return new Promise((resolve, reject) => {
             client.keys(`tags:${prefix}*`, async (err, keys) => {
-                console.log('Flushing cache tags: ', keys);
-
                 const deletePromise = (key) => new Promise((resolve, reject) => {
                     client.del(key, (err) => {
                        if (err) { resolve(); }
@@ -167,7 +165,6 @@ class JobManager {
      * @returns {Promise<unknown>}
      */
     clearJobMetadata ({ entity, ids }) {
-        console.log('Clearing job metadata: ', entity, ids);
         const invalidateCache = async () => {
             try {
                  const prefix = entity.charAt(0).toUpperCase();

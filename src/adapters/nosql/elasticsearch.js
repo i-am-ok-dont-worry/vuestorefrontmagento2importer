@@ -194,7 +194,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    * @param {string} collectionName
    * @returns {Promise<{ id: string, sku: string }[]>}
    */
-  async getProductSkus (collectionName = 'vue_storefront_catalog_product_new') {
+  async getProductSkus (collectionName = 'product') {
     let output = [];
     let scrollId;
     let scrollSize = 0;
@@ -202,7 +202,9 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
     const searchToPromise = (query) => new Promise((resolve, reject) => {
       this.db.search(query, (err, res) => {
         scrollId = res.body['_scroll_id'];
-        scrollSize = res.body['hits']['total']['value'];
+        if (res && res.body && res.body.hits && res.body.hits.total) {
+          scrollSize = res.body['hits']['total']['value'];
+        }
 
         if (err) { reject(err); }
         if (res.body.hits) {
