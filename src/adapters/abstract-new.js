@@ -209,15 +209,15 @@ class AbstractAdapterNew {
 
                     // Invalidate document in elasticsearch and update it once again
                     this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), !/stock/.test(this.getEntityType()), (err, res) => {
+                        this.tasks_count--;
+                        this.index = this.index + 1;
+                        logger.info(`Completed: ${this.index}. Remaining: ${this.tasks_count}`);
+
                         if (err) {
                             logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
-                            done(err);
-                        } else {
-                            this.tasks_count--;
-                            this.index = this.index + 1;
-                            logger.info(`Completed: ${this.index}. Remaining: ${this.tasks_count}`);
-                            done();
                         }
+
+                        done();
                     });
                 })
                 .catch((reason) => {
