@@ -234,7 +234,7 @@ class AbstractAdapter {
 
             // Invalidate document in elasticsearch and update it once again
             if (this.update_document) {
-              this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), (err, res) => {
+              this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), !/stock/.test(this.getEntityType()), (err, res) => {
                 if (err) {
                   logger.error(`Error while updating document of type ${this.getCollectionName(true)}. Id: ${item.id}` + res.body ? res.body.error.reason : JSON.stringify(res));
                 } else {
