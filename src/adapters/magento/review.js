@@ -16,6 +16,10 @@ class ReviewAdapter extends AbstractMagentoAdapter {
     return 'adapters/magento/ReviewAdapter';
   }
 
+  getLabel(item) {
+    return `[(${item.id}) - ${item.detail} ${item.nickname}]`;
+  }
+
   getSourceData(context) {
     if (this.use_paging) {
       return this.api.reviews.list('&searchCriteria[currentPage]=' + this.page + '&searchCriteria[pageSize]=' + this.page_size + (query ? '&' + query : '')).catch((err) => {
@@ -57,8 +61,6 @@ class ReviewAdapter extends AbstractMagentoAdapter {
   }
 
   preProcessItem(item) {
-    logger.info(item);
-    //
     return new Promise((done, reject) => {
       if (item) {
         item.product_id = item.entity_pk_value;

@@ -39,6 +39,10 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         return 'adapters/magento/ProductNewAdapter';
     }
 
+    getLabel (item) {
+        return `[(${item.id}) - ${item.sku} ${item.name}]`;
+    }
+
     getFilterQuery(context) {
         let query = '';
 
@@ -272,13 +276,13 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
 
                 configurable_children.push(confChild);
                 Object.assign(item, {configurable_children});
-
-                const configurableOptions = await this.api.configurableOptions.list(item.sku);
-                item.configurable_options = configurableOptions;
-
-                await this._expandConfigurableOptionsAttributes.bind(this)(item);
-                logger.info('Configurable children expanded on product: ', item.sku);
             }
+
+            const configurableOptions = await this.api.configurableOptions.list(item.sku);
+            item.configurable_options = configurableOptions;
+
+            await this._expandConfigurableOptionsAttributes.bind(this)(item);
+            logger.info('Configurable children expanded on product: ', item.sku);
 
             if (minPrice) { item.price = minPrice; }
 

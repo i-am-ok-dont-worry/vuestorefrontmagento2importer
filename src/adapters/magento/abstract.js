@@ -1,8 +1,9 @@
 'use strict';
 
 let AbstractAdapter = require('../abstract');
+let AbstractAdapterNew = require('../abstract-new');
 
-class AbstractMagentoAdapter extends AbstractAdapter{
+class AbstractMagentoAdapter extends AbstractAdapterNew { // extends AbstractAdapter{
 
   constructor(config){
     super(config);

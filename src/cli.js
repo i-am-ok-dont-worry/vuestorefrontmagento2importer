@@ -55,17 +55,10 @@ const reindexReviews = (adapterName, removeNonExistent, ids) => {
     let adapter = factory.getAdapter(adapterName, 'review');
     let tsk = new Date().getTime();
 
-    adapter.cleanUp(tsk);
-
     adapter.run({
       transaction_key: tsk,
       ids,
       done_callback: () => {
-        if (removeNonExistent) {
-          adapter.cleanUp(tsk);
-        }
-
-        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }
@@ -461,7 +454,7 @@ program
   .command('products')
   .option('--adapter <adapter>', 'name of the adapter', 'magento')
   .option('--partitions <partitions>', 'number of partitions', 1)
-  .option('--partitionSize <partitionSize>', 'size of the partitions', 50)
+  .option('--partitionSize <partitionSize>', 'size of the partitions', 500)
   .option('--initQueue <initQueue>', 'use the queue', true)
   .option('--skus <skus>', 'comma delimited list of SKUs to fetch fresh information from', (value) => value.split(','))
   .option('--ids <ids>', 'comma delimited list of IDs to fetch fresh information from', (value) => value.split(','))

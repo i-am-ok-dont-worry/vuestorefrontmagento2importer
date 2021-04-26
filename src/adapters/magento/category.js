@@ -5,6 +5,7 @@ const CacheKeys = require('./cache_keys');
 const util = require('util');
 const request = require('request');
 const _slugify = require('../../helpers/slugify');
+const uniqBy = require('lodash/uniqBy');
 
 class CategoryAdapter extends AbstractMagentoAdapter {
 
@@ -22,7 +23,11 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     return 'adapters/magento/CategoryAdapter';
   }
 
-  getSourceData(context) {
+  getLabel(item) {
+    return `[(${item.id}) - ${item.name}]`;
+  }
+
+  async getSourceData(context) {
     this.generateUniqueUrlKeys = context.generateUniqueUrlKeys;
     this.extendedCategories = context.extendedCategories;
 
@@ -31,7 +36,23 @@ class CategoryAdapter extends AbstractMagentoAdapter {
       return Promise.all(promises);
     }
 
-    return this.api.categories.list();
+    const cat = await this.api.categories.list();
+
+    let categories = [];
+    const expandChildren = (item) => {
+      categories.push(item);
+
+      if (item.children_data && item.children_data.length > 0) {
+        item.children_data.forEach(category => {
+          categories.push(category);
+          expandChildren(category);
+        });
+      }
+
+      return categories;
+    };
+
+    return uniqBy(expandChildren(cat), 'id');
   }
 
   getLabel(source_item) {
@@ -76,8 +97,11 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     if(!items)
       return items;
 
-    if (items.total_count)
+    if (items.total_count) {
       this.total_count = items.total_count;
+    } else {
+      this.total_count = items.length;
+    }
 
     if (!Array.isArray(items))
       items = new Array(items);
