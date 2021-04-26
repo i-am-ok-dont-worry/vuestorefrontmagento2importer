@@ -23,6 +23,10 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     return 'adapters/magento/CategoryAdapter';
   }
 
+  getLabel(item) {
+    return `[(${item.id}) - ${item.name}]`;
+  }
+
   async getSourceData(context) {
     this.generateUniqueUrlKeys = context.generateUniqueUrlKeys;
     this.extendedCategories = context.extendedCategories;

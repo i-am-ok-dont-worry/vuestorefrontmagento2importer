@@ -55,6 +55,7 @@ class AbstractAdapterNew {
             this.current_context.db = this.db;
         });
 
+        this.probeProcess();
         this.getSourceData(this.current_context)
             .then(this.processItems.bind(this))
             .catch((err) => {
@@ -64,7 +65,7 @@ class AbstractAdapterNew {
     }
 
     probeProcess () {
-        setInterval(() => {
+        this.probe = setInterval(() => {
             if (this.audit_counter === this.audit_counter_prev) {
                 logger.warn(`Process inactive for 120s. Killing...`);
                 process.exit(1);
@@ -96,7 +97,7 @@ class AbstractAdapterNew {
     async processItems (items, level) {
         items = this.prepareItems(items);
 
-        this.is_done = items.length < this.page_size;
+        this.is_done = this.use_paging ? items.length < this.page_size : true;
         this.page_count = Math.ceil(this.total_count / this.page_size);
         this.tasks_count += items.length;
 
@@ -132,6 +133,10 @@ class AbstractAdapterNew {
     }
 
     canProcess(itemId) {
+        if (!this.current_context.ids || !this.current_context.ids instanceof Array) {
+            return Promise.resolve(true);
+        }
+
         const getJob = (id) => new Promise((resolve, reject) => {
             kue.Job.get( id, ( err, job ) => {
                 resolve(job);
@@ -183,10 +188,10 @@ class AbstractAdapterNew {
     done() {
         try {
             logger.info('Done');
-            process.exit(0);
-        } catch (e) {
-            logger.error('Cannot terminate db connection', e);
-        }
+            clearInterval(this.probe);
+        } catch (e) {}
+
+        process.exit(0);
     }
 
 

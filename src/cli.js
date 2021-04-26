@@ -55,17 +55,10 @@ const reindexReviews = (adapterName, removeNonExistent, ids) => {
     let adapter = factory.getAdapter(adapterName, 'review');
     let tsk = new Date().getTime();
 
-    adapter.cleanUp(tsk);
-
     adapter.run({
       transaction_key: tsk,
       ids,
       done_callback: () => {
-        if (removeNonExistent) {
-          adapter.cleanUp(tsk);
-        }
-
-        // logger.info('Task done! Exiting in 30s...');
         setTimeout(process.exit, TIME_TO_EXIT); // let ES commit all changes made
         resolve();
       }

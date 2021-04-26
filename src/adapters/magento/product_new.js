@@ -39,6 +39,10 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         return 'adapters/magento/ProductNewAdapter';
     }
 
+    getLabel (item) {
+        return `[(${item.id}) - ${item.sku} ${item.name}]`;
+    }
+
     getFilterQuery(context) {
         let query = '';
 

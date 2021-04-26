@@ -38,7 +38,6 @@ class TaxruleAdapter extends AbstractMagentoAdapter {
       // TODO get tax rates for this tax rule
       let subPromises = []
       item.rates = []
-      logger.info(item)
 
       for (let ruleId of item.tax_rate_ids) {
         subPromises.push(new Promise((resolve, reject) => {

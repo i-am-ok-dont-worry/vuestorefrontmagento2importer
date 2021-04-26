@@ -18,10 +18,10 @@ class AttributeAdapter extends AbstractMagentoAdapter {
     return this.api.attributes.list()
         .then((res) => {
           if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
-            const items = res.items.filter(item => context.ids.map(id => parseInt(id, 10)).includes(item.id));
-            return { ...res, items };
+            const items = res.items.filter(item => context.ids.map(id => parseInt(id, 10)).includes(item.attribute_id));
+            return { ...res, items: items.map(i => ({ ...i, id: i.attribute_id })) }
           } else {
-            return res;
+            return { ...res, items: res.items.map(i => ({ ...i, id: i.attribute_id })) }
           }
         });
   }
