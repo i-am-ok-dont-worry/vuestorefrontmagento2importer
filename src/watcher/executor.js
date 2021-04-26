@@ -233,16 +233,17 @@ class ReindexExecutor {
             let child = spawn(cmd, args, opts);
 
             child.stdout.on('data', (data) => {
-                console.log(data.toString('utf8'));
+                const utf8 = data.toString('utf8');
+                if (utf8.indexOf('node') === -1) {
+                    console.log(utf8);
+                }
             });
 
             child.stderr.on('data', (data) => {
-                console.log(data.toString('utf8'));
-            });
-
-            child.on('close', (code) => {
-                console.warn('Finished');
-                resolve(code);
+                const utf8 = data.toString('utf8');
+                if (utf8.indexOf('node') === -1) {
+                    console.log(utf8);
+                }
             });
 
             child.on('exit', (code) => {

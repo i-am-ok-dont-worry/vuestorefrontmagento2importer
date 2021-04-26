@@ -95,7 +95,7 @@ class ProductCache {
      * Recreates product cache from ElasticSearch
      * @returns {Promise<{ sku: string, id: string }>}
      */
-    recreateFromElasticSearch (collectionName) {
+    recreateFromElasticSearch (collectionName = 'product') {
         return new Promise((resolve) => {
             const factory = new AdapterFactory(config);
             const es = factory.getAdapter('nosql', config.db.driver);
@@ -105,13 +105,26 @@ class ProductCache {
                 // Stringify objects so they can be stored under redis set
                 client.sadd('i:product-skus', skusIdsPairs.map(obj => JSON.stringify(obj)), (err) => {
                     if (err) {
-                        throw new Error(`Cannot recreate cache from ES`);
-                        process.exit(1);
+                        // throw new Error(`Cannot recreate cache from ES`);
+                        // process.exit(1);
+                        logger.info(`Cannot recreate cache from ES. Elasticsearch returned empty results`);
+                        resolve([]);
                     } else {
                         logger.info(`Cache recreated from existing ES index '${collectionName}'`);
                         resolve(skusIdsPairs);
                     }
                 });
+            });
+        });
+    }
+
+    getProductsSkus(ids) {
+        return new Promise((resolve, reject) => {
+            const factory = new AdapterFactory(config);
+            const es = factory.getAdapter('nosql', config.db.driver);
+            es.connect(async () => {
+                const products = await es.getProductsSkus(ids);
+                resolve(products);
             });
         });
     }

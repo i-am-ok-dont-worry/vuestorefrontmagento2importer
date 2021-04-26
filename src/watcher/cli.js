@@ -84,7 +84,7 @@ program.command('clear')
             const worker = new Worker();
             await worker.clear();
             const mage = new JobManager();
-            await mage.clearFake();
+            await mage.clearAll();
             process.exit(0);
         } catch (e) {
             console.error('Cannot remove stuck jobs: ', e.message);

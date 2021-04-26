@@ -19,10 +19,10 @@ class AbstractNosqlAdapter{
 
   /**
    * Get where query to identify the base record
-   * @param {Object} source_item 
+   * @param {Object} source_item
    */
   getWhereQuery(source_item){
-    return { id: source_item.id }; 
+    return { id: source_item.id };
   }
 
   /**
@@ -44,7 +44,7 @@ class AbstractNosqlAdapter{
    * Get documents
    * @param collectionName collection name
    * @param query query object
-   */  
+   */
   getDocuments(collectionName, query) {
     throw new Error('getDocum ent needs implementation!');
   }
@@ -64,10 +64,10 @@ class AbstractNosqlAdapter{
   cleanupByTransactionkey(collectionName, transactionKey){
     throw new Error('cleanupByTransactionkey needs implementation!');
   }
-  
-/**
- * Connect / prepare driver
- */
+
+  /**
+  * Connect / prepare driver
+  */
   connect (done){
     throw new Error('connect needs implementation!');
   }

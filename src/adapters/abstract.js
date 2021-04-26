@@ -100,8 +100,6 @@ class AbstractAdapter {
       this.current_context.transaction_key = new Date().getTime(); // the key used to filter out records NOT ADDED by this import
 
     this.db.connect(async () => {
-      logger.info('Connected correctly to server');
-      logger.info(`TRANSACTION KEY = ${this.current_context.transaction_key}`);
       this.current_context.db = this.db;
 
       this.onDone = this.current_context.done_callback ? (
@@ -236,17 +234,19 @@ class AbstractAdapter {
 
             // Invalidate document in elasticsearch and update it once again
             if (this.update_document) {
-              this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), (err, res) => {
+              this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), !/stock/.test(this.getEntityType()), (err, res) => {
                 if (err) {
-                  logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
+                  logger.error(`Error while updating document of type ${this.getCollectionName(true)}. Id: ${item.id}` + res.body ? res.body.error.reason : JSON.stringify(res));
+                } else {
+                  this.index++;
+                  done();
                 }
               });
             } else {
+              this.index++;
+              done();
               logger.info('Skipping database update');
             }
-
-            this.index++;
-            done();
           })
           .catch((reason) => {
             logger.error(reason);
@@ -271,8 +271,10 @@ class AbstractAdapter {
                     .then(() => {
                       this.onFinish();
                       this.onDone(this);
-                    });
+                    })
+                    .catch(() => {})
               } else {
+
                 // Increment page and rerun
                 const context = this.getCurrentContext();
                 if (context.page) {

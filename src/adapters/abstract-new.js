@@ -20,6 +20,8 @@ class AbstractAdapterNew {
         this.index = 0;
         this.use_pagination = true;
         this.is_done = false;
+        this.audit_counter = 0;
+        this.audit_counter_prev = -1;
         this.current_context = {};
 
         this.cache = Redis.createClient(this.config.redis);
@@ -61,6 +63,21 @@ class AbstractAdapterNew {
             });
     }
 
+    probeProcess () {
+        setInterval(() => {
+            if (this.audit_counter === this.audit_counter_prev) {
+                logger.warn(`Process inactive for 120s. Killing...`);
+                process.exit(1);
+            } else {
+                this.audit_counter_prev = this.audit_counter_prev + 1;
+            }
+        }, 120000);
+    }
+
+    markProcessActive() {
+        this.audit_counter = this.audit_counter + 1;
+    }
+
     prepareItems(items) {
         if (!items || !Array.isArray(items))
             items = new Array(items);
@@ -93,11 +110,6 @@ class AbstractAdapterNew {
 
         for (let item of (items || [])) {
             await this.appendItemToQueue(item);
-
-            if (item.children_data && item.children_data.length > 0) {
-                logger.info(`--L:${level} Processing child items ...`);
-                this.processItems(item.children_data, level + 1);
-            }
         }
 
         if (this.is_done) {
@@ -188,9 +200,10 @@ class AbstractAdapterNew {
             this.preProcessItem(item)
                 .then((item) => {
                     logger.info(`Importing ${this.getLabel(item)}`);
+                    this.markProcessActive();
 
                     // Invalidate document in elasticsearch and update it once again
-                    this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), (err, res) => {
+                    this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), !/stock/.test(this.getEntityType()), (err, res) => {
                         if (err) {
                             logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
                             done(err);

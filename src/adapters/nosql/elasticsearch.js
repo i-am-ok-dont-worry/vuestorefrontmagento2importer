@@ -90,7 +90,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    * Update single document in database
    * @param {object} item document to be updated in database
    */
-  updateDocument(collectionName, item, callback = () => {}) {
+  updateDocument(collectionName, item, force = false, callback = () => {}) {
     const itemtbu = item;
     const updateRequestBody = {
       index: this.getPhysicalIndexName(collectionName, this.config),
@@ -99,18 +99,34 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
         // put the partial document under the `doc` key
         upsert: itemtbu,
         doc: itemtbu
-
       }
-    }
+    };
+
     if (parseInt(this.config.elasticsearch.apiVersion) < 6)
       updateRequestBody.type = this.getPhysicalTypeName(collectionName, this.config)
 
-    this.db.update(updateRequestBody, function (error, response) {
-      callback(error, response);
-      // if (error) {
-      //  throw new Error(error);
-      // }
-    });
+    const deleteRequestBody = {
+      index: this.getPhysicalIndexName(collectionName, this.config),
+      id: item.id
+    };
+
+    const update = () => {
+      this.db.update(updateRequestBody, function (update_error, update_response) {
+        callback(update_error, update_response);
+      });
+    };
+    
+    const deleteAndUpdate = () => {
+      this.db.delete(deleteRequestBody, function (error, response) {
+        update();
+      });
+    };
+    
+    if (force) {
+      deleteAndUpdate();
+    } else {
+      update();
+    }
   }
 
   /**
@@ -257,7 +273,8 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
        return { docs };
       } catch (e) {
-        throw new Error('Unable to fetch product info');
+        // throw new Error('Unable to fetch product info');
+        return { docs: [] };
       }
     };
 
@@ -270,6 +287,28 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
     }
 
     return output;
+  }
+
+  async getProductsSkus(ids = []) {
+    return new Promise((resolve, reject) => {
+      const searchQueryBody = {
+        index: this.getPhysicalIndexName('product', this.config),
+        body: {
+          query: { terms: { id: ids } },
+          sort: [{ "id": "asc" }],
+          size: 1000
+        }
+      };
+
+      this.db.search(searchQueryBody, (err, res) => {
+        try {
+          const hits = res['body']['hits']['hits'];
+          resolve(hits.map(h => h['_source']['sku']));
+        } catch (e) {
+          resolve([]);
+        }
+      });
+    });
   }
 
   /**

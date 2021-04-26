@@ -112,6 +112,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     preProcessItem(item) {
         return this.api.productsNew.single(item.sku)
             .then(async (product) => {
+                this.processPrice(product);
                 this.processStocks(product);
                 this.processMedia(product);
                 this.processBundleOptions(product);
@@ -122,6 +123,21 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                 logger.info(`Product ${product.sku} imported`);
                 return product;
             });
+    }
+
+    /**
+     * Checks special_price integrity
+     * @param item Current product
+     * @returns Product
+     */
+    processPrice (item) {
+        try {
+            if (!item.hasOwnProperty('special_price')) {
+                item.special_price = null;
+            }
+        } catch (e) {}
+
+        return item;
     }
 
     /**
