@@ -90,7 +90,7 @@ class CategoryAdapter extends AbstractMagentoAdapter {
           item = this._addSingleCategoryData(item, result);
 
           const key = util.format(CacheKeys.CACHE_KEY_CATEGORY, item.id);
-          logger.info(`Storing extended category data to cache under: ${key}`);
+
           this.cache.set(key, JSON.stringify(item));
 
           if (item.children_data && item.children_data.length) {
@@ -105,7 +105,6 @@ class CategoryAdapter extends AbstractMagentoAdapter {
 
       } else {
         const key = util.format(CacheKeys.CACHE_KEY_CATEGORY, item.id);
-        logger.info(`Storing category data to cache under: ${key}`);
         this.cache.set(key, JSON.stringify(item));
         return done(item);
       }
@@ -117,8 +116,11 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     if(!items)
       return items;
 
-    if (items.total_count)
+    if (items.total_count) {
       this.total_count = items.total_count;
+    } else {
+      this.total_count = items.length;
+    }
 
     if (!Array.isArray(items))
       items = new Array(items);
