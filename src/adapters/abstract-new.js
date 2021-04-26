@@ -99,7 +99,7 @@ class AbstractAdapterNew {
 
         this.is_done = this.use_paging ? items.length < this.page_size : true;
         this.page_count = Math.ceil(this.total_count / this.page_size);
-        this.tasks_count += items.length;
+        this.tasks_count = this.total_count || this.tasks_count + items.length;
 
         if (isNaN(level)) { level = 0; }
 
