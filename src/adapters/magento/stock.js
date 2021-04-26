@@ -59,7 +59,7 @@ class StockAdapter extends AbstractMagentoAdapter {
                     min_sale_qty: res.min_sale_qty,
                     max_sale_qty: res.max_sale_qty
                 };
-                Object.assign(item, { stock });
+                Object.assign(item, { stock }, { id: res.product_id });
                 return item;
             })
             .catch(() => {
