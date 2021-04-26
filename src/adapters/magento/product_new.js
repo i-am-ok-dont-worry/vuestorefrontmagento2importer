@@ -465,6 +465,8 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
             Object.assign(product, { [customAttribute.attribute_code]: attributeValue });
         }
 
+        if (!product.special_price && product['special_from_date']) delete product['special_from_date'];
+
         delete product['custom_attributes'];
     }
 }
