@@ -4,6 +4,12 @@ const kue = require('kue');
 const config = require('../config');
 const queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
 
+process.once('SIGINT', function ( sig ) {
+    queue.shutdown( 5000, function(err) {
+        console.log( 'Kue shutdown: ', err||'' );
+        process.exit( 0 );
+    });
+});
 
 class AbstractAdapterNew {
 
@@ -49,13 +55,15 @@ class AbstractAdapterNew {
         }
     }
 
-    run(context) {
+    async run(context) {
         this.current_context = context;
         this.db.connect(async () => {
             this.current_context.db = this.db;
         });
 
         this.probeProcess();
+        await this.cleanStuckJobs();
+
         this.getSourceData(this.current_context)
             .then(this.processItems.bind(this))
             .catch((err) => {
@@ -172,6 +180,7 @@ class AbstractAdapterNew {
             queue.createJob(`mage2-import-job-${this.getCollectionName(true)}`, {...item, title: item.name || item.id})
                 .attempts(3)
                 .backoff({delay: 60 * 1000, type: 'fixed'})
+                .ttl('60000')
                 .removeOnComplete(true)
                 .save((err) => {
                     if (err) {
@@ -208,10 +217,12 @@ class AbstractAdapterNew {
                     this.markProcessActive();
 
                     // Invalidate document in elasticsearch and update it once again
-                    this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), !/stock/.test(this.getEntityType()), (err, res) => {
+                    this.db.updateDocument(this.getCollectionName(true), this.normalizeDocumentFormat(item), !/stock/.test(this.getEntityType()), async (err, res) => {
                         this.tasks_count--;
                         this.index = this.index + 1;
-                        logger.info(`Completed: ${this.index}. Remaining: ${this.tasks_count}`);
+
+                        const pending = await this.countPendingTask();
+                        logger.info(`Completed: ${this.index}. Remaining: ${this.tasks_count}. Pending: ${pending}`);
 
                         if (err) {
                             logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
@@ -228,17 +239,36 @@ class AbstractAdapterNew {
 
         queue.on('job complete', (jobId) => {
             queue.inactiveCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, inactive) => {
-                if (this.tasks_count === 0) {
-                    this.done();
-                }
-            });
-
-            kue.Job.get(jobId, (err, job) => {
-                if (err) return;
-                job.remove((err) => {
-                    if (err) throw err;
+                queue.activeCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, active) => {
+                   if (inactive + active === 0) {
+                       this.done();
+                   }
                 });
             });
+        });
+    }
+
+    countPendingTask () {
+        return new Promise((resolve) => {
+            queue.inactiveCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, inactive) => {
+                queue.activeCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, active) => {
+                    resolve(inactive + active - 1 < 0 ? 0 : inactive + active - 1);
+                });
+            });
+        });
+    }
+
+    cleanStuckJobs () {
+        return new Promise((resolve) => {
+            if (!this.current_context.ids || !this.current_context.ids instanceof Array) {
+                kue.Job.rangeByType( `mage2-import-job-${this.getCollectionName(true)}`, 'inactive', 0, 100000, 'asc', function( err, jobs ) {
+                    jobs.forEach(( job ) => {
+                        job.remove();
+                    });
+
+                    resolve();
+                });
+            }
         });
     }
 
