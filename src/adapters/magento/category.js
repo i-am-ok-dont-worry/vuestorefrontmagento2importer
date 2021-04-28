@@ -80,6 +80,12 @@ class CategoryAdapter extends AbstractMagentoAdapter {
         return done(item);
       }
 
+      try {
+        if (!this.current_context.ids || !this.current_context.ids instanceof Array) {
+          item = await this.api.categories.getSingle(item.id);
+        }
+      } catch (e) {}
+
       item.slug = item.url_key;
       item.url_path = item.url_path;
 
