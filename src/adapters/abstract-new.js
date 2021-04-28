@@ -237,14 +237,12 @@ class AbstractAdapterNew {
                 });
         });
 
-        queue.on('job complete', (jobId) => {
-            queue.inactiveCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, inactive) => {
-                queue.activeCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, active) => {
-                   if (inactive + active === 0) {
-                       this.done();
-                   }
-                });
-            });
+        queue.on('job complete', async (jobId) => {
+            const pending = await this.countPendingTask();
+
+            if (pending === 0) {
+                this.done();
+            }
         });
     }
 
@@ -252,7 +250,8 @@ class AbstractAdapterNew {
         return new Promise((resolve) => {
             queue.inactiveCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, inactive) => {
                 queue.activeCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, active) => {
-                    resolve(inactive + active - 1 < 0 ? 0 : inactive + active - 1);
+                    const pending = inactive + active - 1;
+                    resolve(pending === this.tasks_count ? pending : this.tasks_count);
                 });
             });
         });
@@ -268,6 +267,8 @@ class AbstractAdapterNew {
 
                     resolve();
                 });
+            } else {
+                resolve();
             }
         });
     }
