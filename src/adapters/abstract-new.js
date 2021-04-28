@@ -222,7 +222,7 @@ class AbstractAdapterNew {
                         this.index = this.index + 1;
 
                         const pending = await this.countPendingTask();
-                        logger.info(`Completed: ${this.index}. Remaining: ${this.tasks_count}. Pending: ${pending}`);
+                        logger.info(`Completed: ${this.index}. Remaining: ${this.tasks_count > 0 ? this.tasks_count : 0}. Pending: ${pending}`);
 
                         if (err) {
                             logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
@@ -251,7 +251,8 @@ class AbstractAdapterNew {
             queue.inactiveCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, inactive) => {
                 queue.activeCount(`mage2-import-job-${this.getCollectionName(true)}`, (err, active) => {
                     const pending = inactive + active - 1;
-                    resolve(pending === this.tasks_count ? pending : this.tasks_count);
+                    // resolve(pending === this.tasks_count ? pending : this.tasks_count);
+                    resolve(pending);
                 });
             });
         });
@@ -268,7 +269,13 @@ class AbstractAdapterNew {
                     resolve();
                 });
             } else {
-                resolve();
+                kue.Job.rangeByType( `mage2-import-job-${this.getCollectionName(true)}`, 'active', 0, 100000, 'asc', function( err, jobs ) {
+                    jobs.forEach(( job ) => {
+                        job.remove();
+                    });
+
+                    resolve();
+                });
             }
         });
     }
