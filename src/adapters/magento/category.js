@@ -82,7 +82,7 @@ class CategoryAdapter extends AbstractMagentoAdapter {
 
       try {
         if (!this.current_context.ids || !this.current_context.ids instanceof Array) {
-          item = await this.api.categories.getSingle(item.id);
+          item = { ...item, ...await this.api.categories.getSingle(item.id) };
         }
       } catch (e) {}
 
