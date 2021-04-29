@@ -1,3 +1,4 @@
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 const AdapterFactory = require('./factory');
 const config = require('config');
 const Redis = require('redis');
