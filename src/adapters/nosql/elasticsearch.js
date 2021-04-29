@@ -9,11 +9,14 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
   validateConfig(config) {
 
-    if (!config['db']['url'])
-      throw Error('db.url must be set up in config');
+    if (!config['elasticsearch']['host'])
+      throw Error('elasticsearch.host must be set up in config');
 
-    if (!config['db']['indexName'])
-      throw Error('db.indexName must be set up in config');
+    if (!config['elasticsearch']['port'])
+      throw Error('elasticsearch.port must be set up in config');
+
+    if (!config['elasticsearch']['index'])
+      throw Error('db.index must be set up in config');
 
   }
 
@@ -35,9 +38,9 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    */
   getPhysicalIndexName(collectionName, config) {
     if (parseInt(config.elasticsearch.apiVersion) >= 6) {
-      return `${config.db.indexName}_${collectionName}`
+      return `${config.elasticsearch.index}_${collectionName}`
     } else {
-      return config.db.indexName
+      return config.elasticsearch.index
     }
   }
 
@@ -319,7 +322,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
     if (!global.es) {
       this.db = new elasticsearch.Client({
-        node: this.config.db.url,
+        node: `${this.config.elasticsearch.host}:${this.config.elasticsearch.port}`,
         log: 'debug',
         apiVersion: this.config.elasticsearch.apiVersion,
 
