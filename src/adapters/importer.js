@@ -1,5 +1,5 @@
 const AdapterFactory = require('./factory');
-const config = require('../config');
+const config = require('config');
 const Redis = require('redis');
 const logger = require('../log');
 

@@ -1,0 +1,29 @@
+{
+  "magento": {
+    "url": "https://mage.meringer.staging.grupakmk.pl/rest",
+    "consumerKey": "8xb6xctldzbtfx6zi692rc09qqaa30iv",
+    "consumerSecret": "6wwwvhbmwlnyzu7jj5lrutz67bxp6aot",
+    "accessToken": "3vxl6i2ne1exhjwys0y0184adv5r15qr",
+    "accessTokenSecret": "as5yluoyzdjixe1ktd4hbhttop4h4x2v",
+    "storeId": 1,
+    "currencyCode": "PLN",
+    "msi": {
+      "enabled": false,
+      "stockId": 1
+    }
+  },
+  "db": {
+    "driver": "elasticsearch",
+    "url": "http://localhost:9200",
+    "indexName": "vue_storefront_catalog"
+  },
+  "elasticsearch": {
+    "apiVersion": "7.8.1"
+  },
+  "redis": {
+    "host": "127.0.0.1",
+    "port": 6379,
+    "auth": false,
+    "db": 0
+  }
+}
