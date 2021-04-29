@@ -1,6 +1,6 @@
 'use strict';
 const Redis = require('redis');
-const config = require('../config');
+const config = require('config');
 const client = Redis.createClient(config.redis);
 const AdapterFactory = require('../adapters/factory');
 const logger = require('../log');
@@ -98,7 +98,7 @@ class ProductCache {
     recreateFromElasticSearch (collectionName = 'product') {
         return new Promise((resolve) => {
             const factory = new AdapterFactory(config);
-            const es = factory.getAdapter('nosql', config.db.driver);
+            const es = factory.getAdapter('nosql', 'elasticsearch');
             es.connect(async () => {
                 const skusIdsPairs = await es.getProductSkus(collectionName);
 
@@ -121,7 +121,7 @@ class ProductCache {
     getProductsSkus(ids) {
         return new Promise((resolve, reject) => {
             const factory = new AdapterFactory(config);
-            const es = factory.getAdapter('nosql', config.db.driver);
+            const es = factory.getAdapter('nosql', 'elasticsearch');
             es.connect(async () => {
                 const products = await es.getProductsSkus(ids);
                 resolve(products);
