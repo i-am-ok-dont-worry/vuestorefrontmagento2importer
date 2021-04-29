@@ -322,7 +322,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
     if (!global.es) {
       this.db = new elasticsearch.Client({
-        node: `${this.config.elasticsearch.host}:${this.config.elasticsearch.port}`,
+        node: `${this.config.elasticsearch.protocol || 'http'}://${this.config.elasticsearch.host}:${this.config.elasticsearch.port || 9200}`,
         log: 'debug',
         apiVersion: this.config.elasticsearch.apiVersion,
 
