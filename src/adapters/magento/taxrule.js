@@ -50,8 +50,6 @@ class TaxruleAdapter extends AbstractMagentoAdapter {
       }
 
       Promise.all(subPromises).then(function(results) {
-        logger.info(`Rates downloaded for ${item.code}`)
-        logger.info(item)
         return done(item);
       })
     });

@@ -78,7 +78,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
 
         if (this.use_paging) {
             this.page_count = Math.ceil(this.total_count / this.page_size);
-            logger.info('Page count', this.page_count)
+            // logger.info('Page count', this.page_count)
         }
 
         return items.items;
