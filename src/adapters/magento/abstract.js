@@ -8,7 +8,7 @@ class AbstractMagentoAdapter { //  extends AbstractAdapterNew { // extends Abstr
   constructor(config) {
     this.config = config;
     let Magento2Client = require('./magento2-rest-client').Magento2Client;
-    this.api = Magento2Client(this.config.magento);
+    this.api = Magento2Client(this.config.magento2.api);
   }
 
   getEntityType(){
