@@ -7,7 +7,6 @@ class AdapterFactory {
   }
 
    getAdapter (adapter_type, driver) {
-
     let adapter_class = require('./' + adapter_type + '/' + driver);
 
     if (!adapter_class) {

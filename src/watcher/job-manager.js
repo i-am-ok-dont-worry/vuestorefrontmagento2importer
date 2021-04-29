@@ -165,16 +165,6 @@ class JobManager {
      * @returns {Promise<unknown>}
      */
     clearJobMetadata ({ entity, ids }) {
-        const invalidateCache = async () => {
-            try {
-                 const prefix = entity.charAt(0).toUpperCase();
-                 await this.clearCache(prefix);
-                 await this.clearCache(prefix.toLowerCase());
-            } catch (e) {
-
-            }
-        };
-
         return new Promise(async (resolve, reject) => {
             let index = 0;
             const deleteEntityStatusToPromise = (id) => new Promise((res, rej) => {
@@ -188,8 +178,6 @@ class JobManager {
             });
 
             if (!ids) { ids = ['full']; }
-
-            await invalidateCache();
 
             client.hgetall(`i:${entity}:status`, async (err, data) => {
                 if (err) {

@@ -16,6 +16,10 @@ class BlockAdapter extends AbstractMagentoAdapter {
         return 'adapters/magento/BlockAdapter';
     }
 
+    getLabel(item) {
+        return `[(${item.id}) - ${item.title}]`;
+    }
+
     getSourceData(context) {
         if (this.use_paging) {
             return this.api.blocks.list('&searchCriteria[currentPage]=' + this.page + '&searchCriteria[pageSize]=' + this.page_size + (query ? '&' + query : ''))

@@ -1,6 +1,7 @@
 const { EntityType } = require('./entity');
 const spawn = require('child_process').spawn;
 const config = require('config');
+const MagentoImporter = require('../adapters/importer');
 
 const _exec = Symbol();
 const _assertFunctionImplemented = Symbol();
@@ -116,11 +117,13 @@ class ReindexExecutor {
      * @returns {Promise}
      */
     [_handleAttributesReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'attributes',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'attribute' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**
@@ -129,11 +132,13 @@ class ReindexExecutor {
      * @returns {Promise}
      */
     [_handlePagesReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'pages',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_page' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**
@@ -142,11 +147,13 @@ class ReindexExecutor {
      * @returns {Promise}
      */
     [_handleBlocksReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'blocks',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_block' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**
@@ -154,11 +161,13 @@ class ReindexExecutor {
      * @param context
      */
     [_handleProductsReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'products',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'product_new' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**
@@ -166,11 +175,13 @@ class ReindexExecutor {
      * @param context
      */
     [_handleCategoriesProductsReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'productcategories',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'productcategories' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**
@@ -178,11 +189,13 @@ class ReindexExecutor {
      * @param context
      */
     [_handleCategoriesReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'categories',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'category' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**
@@ -190,11 +203,13 @@ class ReindexExecutor {
      * @param context
      */
     [_handleReviewsReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'reviews',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'review' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**
@@ -202,11 +217,13 @@ class ReindexExecutor {
      * @param context
      */
     [_handleTaxRulesReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'taxrule',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'taxrule' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**
@@ -214,11 +231,13 @@ class ReindexExecutor {
      * @param context
      */
     [_handleStocksReindex](context) {
-        return this[_exec]('node', [
-            '--harmony',
-            __dirname + '/../cli.js',
-            'stocks',
-        ].concat(context.ids ? '--ids=' + context.ids : ''), { shell: false, env: this.env || process.env });
+        return new Promise((resolve, reject) => {
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'stock' });
+
+            importer.run(() => {
+                resolve();
+            });
+        });
     }
 
     /**

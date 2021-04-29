@@ -3,11 +3,10 @@
 let AbstractAdapter = require('../abstract');
 let AbstractAdapterNew = require('../abstract-new');
 
-class AbstractMagentoAdapter extends AbstractAdapterNew { // extends AbstractAdapter{
+class AbstractMagentoAdapter { //  extends AbstractAdapterNew { // extends AbstractAdapter{
 
-  constructor(config){
-    super(config);
-
+  constructor(config) {
+    this.config = config;
     let Magento2Client = require('./magento2-rest-client').Magento2Client;
     this.api = Magento2Client(this.config.magento);
   }

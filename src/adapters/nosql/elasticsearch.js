@@ -115,13 +115,13 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
         callback(update_error, update_response);
       });
     };
-    
+
     const deleteAndUpdate = () => {
       this.db.delete(deleteRequestBody, function (error, response) {
         update();
       });
     };
-    
+
     if (force) {
       deleteAndUpdate();
     } else {
