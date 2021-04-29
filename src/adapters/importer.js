@@ -18,7 +18,7 @@ class MagentoImporter {
         this.start_time = Date.now();
 
         let factory = new AdapterFactory(config);
-        this.db = factory.getAdapter('nosql', config.db.driver);
+        this.db = factory.getAdapter('nosql', 'elasticsearch');
         this.db.connect(async () => {
             this.options.db = this.db;
         });
