@@ -146,6 +146,7 @@ class MagentoImporter {
 
     shouldOverwrite () {
         if (/stock/.test(this.adapter.getEntityType())) return false;
+        if (/category/.test(this.adapter.getEntityType())) return false;
 
         return true;
     }
