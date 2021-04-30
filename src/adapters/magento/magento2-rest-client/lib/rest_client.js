@@ -11,7 +11,8 @@ module.exports.RestClient = function (options) {
     var instance = {};
 
     var servelrUrl = options.url;
-    var apiVersion = options.version;
+    var apiVersion = options.version || 'V1';
+    var storeCode = options.storeCode || 'all';
     var oauth = OAuth({
         consumer: {
             public: options.consumerKey,
@@ -87,7 +88,7 @@ module.exports.RestClient = function (options) {
     }
 
     function createUrl(resourceUrl) {
-        return servelrUrl + '/' + apiVersion + resourceUrl;
+        return servelrUrl + '/' + storeCode + '/' + apiVersion + resourceUrl;
     }
 
     instance.post = function (resourceUrl, data) {

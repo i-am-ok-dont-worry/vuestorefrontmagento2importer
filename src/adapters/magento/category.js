@@ -28,12 +28,13 @@ class CategoryAdapter extends AbstractMagentoAdapter {
   }
 
   async getSourceData(context) {
+    this.current_context = context;
     this.generateUniqueUrlKeys = context.generateUniqueUrlKeys;
     this.extendedCategories = context.extendedCategories;
 
     if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
       const promises = context.ids.map(id => this.api.categories.getSingle(id));
-      return Promise.all(promises);
+      return await Promise.all(promises);
     }
 
     const cat = await this.api.categories.list();
@@ -82,19 +83,13 @@ class CategoryAdapter extends AbstractMagentoAdapter {
 
       try {
         if (!this.current_context.ids || !this.current_context.ids instanceof Array) {
-          item = { ...item, ...await this.api.categories.getSingle(item.id) };
+          const single = await this.api.categories.getSingle(item.id);
+          item = { ...item, ...single };
         }
       } catch (e) {}
 
-      item.slug = item.url_key;
-      item.url_path = item.url_path;
-
-      if (this.extendedCategories) {
-        this.expandCustomAttributes(item);
-        return done(item);
-      } else {
-        return done(item);
-      }
+      this.expandCustomAttributes(item);
+      done(item);
 
     });
   }
