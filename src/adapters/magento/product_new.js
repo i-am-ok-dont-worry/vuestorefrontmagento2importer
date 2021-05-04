@@ -3,6 +3,7 @@
 let AbstractMagentoAdapter = require('./abstract');
 const CacheKeys = require('./cache_keys');
 const util = require('util');
+const toString = require('lodash/toString');
 
 class ProductNewAdapter extends AbstractMagentoAdapter {
 
@@ -78,7 +79,6 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
 
         if (this.use_paging) {
             this.page_count = Math.ceil(this.total_count / this.page_size);
-            // logger.info('Page count', this.page_count)
         }
 
         return items.items;
@@ -232,6 +232,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         if (item.type_id !== 'configurable') { return item; }
         try {
             const children = await this.api.configurableChildren.list(item.sku);
+            const stock = await this.getConfigurableProductStock(children);
             const configurable_children = new Array();
             const minPrice = Math.min(...(children || []).map(({ price }) => price || 0));
 
@@ -253,27 +254,6 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                     }
                 }
 
-                const context = this.current_context;
-
-                if (context.renderedProducts && context.renderedProducts.items.length) {
-                    const renderedProducts = context.renderedProducts;
-                    const subProductAdditionalInfo = renderedProducts.items.find(p => p.id === confChild.id);
-
-                    if (subProductAdditionalInfo && subProductAdditionalInfo.price_info) {
-                        delete subProductAdditionalInfo.price_info.formatted_prices;
-                        delete subProductAdditionalInfo.price_info.extension_attributes;
-                        confChild = Object.assign(confChild, subProductAdditionalInfo.price_info);
-                        if (confChild.final_price < confChild.price) {
-                            confChild.special_price = confChild.final_price;
-                        }
-
-                        if (this.config.product.renderCatalogRegularPrices) {
-                            confChild.price = confChild.regular_price;
-                        }
-
-                    }
-                }
-
                 configurable_children.push(confChild);
                 Object.assign(item, {configurable_children});
             }
@@ -284,7 +264,8 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
             await this._expandConfigurableOptionsAttributes.bind(this)(item);
             logger.info('Configurable children expanded on product: ', item.sku);
 
-            if (minPrice) { item.price = minPrice; }
+            Object.assign(item, { price: minPrice || 0 });
+            Object.assign(item.stock, stock);
 
             return item;
         } catch (e) {
@@ -358,33 +339,30 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
 
     async _expandConfigurableOptionsAttributes (item) {
         const subPromises = [];
+        const translateAttributeLabel = (attr, optionId) => {
+            if (attr) {
+                let opt = attr.options.find((op) => {
+                    if (toString(op.value) === toString(optionId)) {
+                        return op
+                    }
+                });
+                return opt ? opt.label : optionId
+            } else {
+                return optionId
+            }
+        };
+
         for (let option of item.configurable_options) {
             let atrKey = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, option.attribute_id);
             subPromises.push(new Promise((resolve, reject) => {
                 logger.info(`Configurable options for ${atrKey}`);
                 this.cache.get(atrKey, (err, serializedAtr) => {
-                    let atr = JSON.parse(serializedAtr); // category object
+                    let atr = JSON.parse(serializedAtr);
                     if (atr != null) {
                         option.attribute_code = atr.attribute_code;
                         option.values.map((el) => {
-                            el.label = (attr, optionId) => {
-                                if (attr) {
-                                    let opt = attr.options.find((op) => {
-                                        if (_.toString(op.value) === _.toString(optionId)) {
-                                            return op
-                                        }
-                                    });
-                                    return opt ? opt.label : optionId
-                                } else {
-                                    return optionId
-                                }
-                            };
+                            el.label = translateAttributeLabel(atr, el.value_index);
                         });
-
-                        logger.info(`Product options for ${atr.attribute_code} for ${item.sku} set`);
-                        item[atr.attribute_code + '_options'] = option.values.map((el) => {
-                            return el.value_index;
-                        })
                     }
 
                     resolve(item);
@@ -451,6 +429,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         let attributesMap = {};
         try { attributesMap = await this.fetchAttributes(); } catch (e) {
             console.warn('Cannot fetch magento attributes metadata');
+            return;
         }
 
         for (let customAttribute of product.custom_attributes || []) {
@@ -468,6 +447,25 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         if (!product.special_price && product['special_from_date']) delete product['special_from_date'];
 
         delete product['custom_attributes'];
+    }
+
+    /**
+     * Returns configurable product stock item
+     * @param {Product[]} configurableChildren
+     * @returns {Promise<{ qty: number }>}
+     */
+    async getConfigurableProductStock (configurableChildren = []) {
+        try {
+            const skus = configurableChildren.map(({ sku }) => sku);
+            const stockItems = await Promise.all(skus.map(sku => this.api.stockItems.list(sku)));
+            const qty = stockItems.reduce((acc, stockItem) => acc + (stockItem?.qty || 0), 0);
+
+            return {
+                qty
+            };
+        } catch (e) {
+            return null;
+        }
     }
 }
 

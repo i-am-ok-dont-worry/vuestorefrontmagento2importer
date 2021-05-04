@@ -85,6 +85,8 @@ class CategoryAdapter extends AbstractMagentoAdapter {
         if (!this.current_context.ids || !this.current_context.ids instanceof Array) {
           const single = await this.api.categories.getSingle(item.id);
           item = { ...item, ...single };
+
+
         }
       } catch (e) {}
 
@@ -116,6 +118,11 @@ class CategoryAdapter extends AbstractMagentoAdapter {
    */
   normalizeDocumentFormat(item) {
     return item;
+  }
+
+  storeToCache(item) {
+    let key = util.format(CacheKeys.CACHE_KEY_CATEGORY, item.id);
+    this.cache.set(key, JSON.stringify(item));
   }
 }
 
