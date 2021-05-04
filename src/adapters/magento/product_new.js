@@ -458,7 +458,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         try {
             const skus = configurableChildren.map(({ sku }) => sku);
             const stockItems = await Promise.all(skus.map(sku => this.api.stockItems.list(sku)));
-            const qty = stockItems.reduce((acc, stockItem) => acc + (stockItem?.qty || 0), 0);
+            const qty = stockItems.reduce((acc, stockItem) => acc + (stockItem && stockItem.qty ? stockItem.qty : 0), 0);
 
             return {
                 qty
