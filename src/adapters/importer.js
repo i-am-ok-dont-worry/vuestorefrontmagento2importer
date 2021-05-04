@@ -133,7 +133,7 @@ class MagentoImporter {
             this.db.updateDocument(this.adapter.getCollectionName(true), this.adapter.normalizeDocumentFormat(item), this.shouldOverwrite(), async (err, res) => {
                 if (err) {
                     logger.error(res.body ? res.body.error.reason : JSON.stringify(res));
-                    return reject();
+                    return resolve();
                 }
 
                 this.done_count += 1;
