@@ -8,7 +8,7 @@ class MagentoImporter {
 
     constructor (options = {}) {
         this.options = Object.assign({
-            page: 1,
+            page: 8,
             page_size: 500,
             page_count: 1,
             use_paging: false
@@ -58,6 +58,8 @@ class MagentoImporter {
             await this.start();
         } else {
             const data = await this.adapter.getSourceData(this.options);
+            this.total_count = data.total_count;
+
             const isDone = Math.ceil(this.total_count / this.options.page_size) === this.options.page;
             const items = this.adapter.prepareItems(data);
 
