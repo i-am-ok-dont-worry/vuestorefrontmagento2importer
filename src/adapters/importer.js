@@ -8,7 +8,7 @@ class MagentoImporter {
 
     constructor (options = {}) {
         this.options = Object.assign({
-            page: 8,
+            page: 1,
             page_size: 500,
             page_count: 1,
             use_paging: false
