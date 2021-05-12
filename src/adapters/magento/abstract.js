@@ -1,14 +1,11 @@
 'use strict';
-
-let AbstractAdapter = require('../abstract');
-let AbstractAdapterNew = require('../abstract-new');
-
-class AbstractMagentoAdapter { //  extends AbstractAdapterNew { // extends AbstractAdapter{
+const MultiStoreUtils = require('../../helpers/multistore-utils');
+class AbstractMagentoAdapter {
 
   constructor(config) {
     this.config = config;
     let Magento2Client = require('./magento2-rest-client').Magento2Client;
-    this.api = Magento2Client(this.config.magento2.api);
+    this.api = Magento2Client({ ...this.config.magento2.api, storeCode: MultiStoreUtils.getStoreCode() });
   }
 
   getEntityType(){
