@@ -32,28 +32,48 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     this.generateUniqueUrlKeys = context.generateUniqueUrlKeys;
     this.extendedCategories = context.extendedCategories;
 
-    if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
-      const promises = context.ids.map(id => this.api.categories.getSingle(id));
-      return await Promise.all(promises);
-    }
+    const expand = (root) => {
+      let categories = [];
 
-    const cat = await this.api.categories.list();
+      const expandChildren = (item) => {
+        categories.push(item);
 
-    let categories = [];
-    const expandChildren = (item) => {
-      categories.push(item);
+        if (item.children_data && item.children_data.length > 0) {
+          item.children_data.forEach(category => {
+            categories.push(category);
+            expandChildren(category);
+          });
+        }
 
-      if (item.children_data && item.children_data.length > 0) {
-        item.children_data.forEach(category => {
-          categories.push(category);
-          expandChildren(category);
-        });
-      }
+        return categories;
+      };
+
+      expandChildren(root);
 
       return categories;
     };
 
-    return uniqBy(expandChildren(cat), 'id');
+    if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
+      const root = await this.api.categories.list();
+      const flattenCategories = expand(root);
+      let promises = await Promise.all(context.ids.map(id => this.api.categories.getSingle(id)));
+
+      promises = promises.map(category => {
+        const cat = flattenCategories.find(({ id }) => id == category.id);
+
+        if (cat && cat.hasOwnProperty('product_count')) {
+          return { ...category, product_count: cat.product_count };
+        } else {
+          return category;
+        }
+      });
+
+      return promises;
+    }
+
+    const cat = await this.api.categories.list();
+
+    return uniqBy(expand(cat), 'id');
   }
 
   getLabel(source_item) {
