@@ -38,6 +38,10 @@ class PageAdapter extends AbstractMagentoAdapter {
             });
     }
 
+    fetchPage(pageId) {
+        return this.api.pages.get(pageId);
+    }
+
     prepareItems(items) {
         if(!items)
           return items;
@@ -54,12 +58,17 @@ class PageAdapter extends AbstractMagentoAdapter {
 
     preProcessItem(item) {
 
-        return new Promise((done, reject) => {
+        return new Promise(async (done, reject) => {
             if (item) {
                 item.type = 'cms_page'
             }
 
-          return done(item);
+            try {
+                const page = await this.fetchPage(item.id);
+                item = { ...item, page };
+            } catch (e) {}
+
+            return done(item);
         });
 
     }
