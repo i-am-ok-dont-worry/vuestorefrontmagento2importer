@@ -65,7 +65,7 @@ class PageAdapter extends AbstractMagentoAdapter {
 
             try {
                 const page = await this.fetchPage(item.id);
-                item = { ...item, page };
+                item = { ...item, ...page };
             } catch (e) {}
 
             return done(item);
