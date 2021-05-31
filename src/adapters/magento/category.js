@@ -27,6 +27,36 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     return `[(${item.id}) - ${item.name}]`;
   }
 
+  getProductCount(category) {
+    const getNestedCategoryIds = (cat) => {
+      const ids = [];
+      const getChildrenCategoryIds = (item) => {
+        ids.push(item.id);
+
+        if (item.children_data && item.children_data.length) {
+          item.children_data.forEach(i => getChildrenCategoryIds(i));
+        }
+      };
+
+      getChildrenCategoryIds(cat);
+      return ids;
+    };
+
+    const query = {
+      query: {
+        terms: {
+          category_ids: getNestedCategoryIds(category)
+        }
+      }
+    };
+
+    try {
+      return this.db.countDocuments('product', query);
+    } catch (e) {
+      return category.product_count;
+    }
+  }
+
   async getSourceData(context) {
     this.current_context = context;
     this.generateUniqueUrlKeys = context.generateUniqueUrlKeys;
@@ -104,9 +134,13 @@ class CategoryAdapter extends AbstractMagentoAdapter {
       try {
         if (!this.current_context.ids || !this.current_context.ids instanceof Array) {
           const single = await this.api.categories.getSingle(item.id);
+
           item = { ...item, ...single };
         }
       } catch (e) {}
+
+      const count = await this.getProductCount(item);
+      item.product_count = count;
 
       this.expandCustomAttributes(item);
       done(item);
