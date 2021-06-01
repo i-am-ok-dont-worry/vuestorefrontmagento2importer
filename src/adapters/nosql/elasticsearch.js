@@ -315,6 +315,31 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
   }
 
   /**
+   * Returns count of documents based on query
+   * @param query
+   */
+  countDocuments(collectionName, query) {
+    return new Promise((resolve, reject) => {
+      const countQueryBody = {
+        index: this.getPhysicalIndexName(collectionName, this.config),
+        body: query
+      };
+
+      this.db.count(countQueryBody, (err, res) => {
+        if (err) {
+          reject(err);
+        } else {
+          try {
+            resolve(res.body.count);
+          } catch (e) {
+            resolve(0);
+          }
+        }
+      });
+    });
+  }
+
+  /**
    * Connect / prepare driver
    * @param {Function} done callback to be called after connection is established
    */
