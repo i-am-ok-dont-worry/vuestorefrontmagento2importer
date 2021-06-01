@@ -36,11 +36,11 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    * @param {*} baseIndexName
    * @param {*} config
    */
-  getPhysicalIndexName(collectionName, config) {
-    if (parseInt(config.elasticsearch.apiVersion) >= 6) {
-      return `${config.elasticsearch.index}_${collectionName}`
+  getPhysicalIndexName(collectionName) {
+    if (parseInt(this.config.elasticsearch.apiVersion) >= 6) {
+      return `${this.config.elasticsearch.index}_${collectionName}`
     } else {
-      return config.elasticsearch.index
+      return this.config.elasticsearch.index
     }
   }
 
@@ -72,9 +72,10 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
   getDocuments(collectionName, queryBody) {
     return new Promise((resolve, reject) => {
       const searchQueryBody = {
-        index: this.getPhysicalIndexName(collectionName, this.config),
+        index: this.getPhysicalIndexName(collectionName),
         body: queryBody
-      }
+      };
+
       if (parseInt(this.config.elasticsearch.apiVersion) < 6)
        searchQueryBody.type  = this.getPhysicalTypeName(collectionName, this.config)
 
@@ -96,7 +97,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
   updateDocument(collectionName, item, force = false, callback = () => {}) {
     const itemtbu = item;
     const updateRequestBody = {
-      index: this.getPhysicalIndexName(collectionName, this.config),
+      index: this.getPhysicalIndexName(collectionName),
       id: item.id,
       body: {
         // put the partial document under the `doc` key
@@ -109,7 +110,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
       updateRequestBody.type = this.getPhysicalTypeName(collectionName, this.config)
 
     const deleteRequestBody = {
-      index: this.getPhysicalIndexName(collectionName, this.config),
+      index: this.getPhysicalIndexName(collectionName),
       id: item.id
     };
 
@@ -141,7 +142,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
     if (transactionKey) {
       const query = {
-        index: this.getPhysicalIndexName(collectionName, this.config),
+        index: this.getPhysicalIndexName(collectionName),
         conflicts: 'proceed',
         body: {
           query: {
@@ -174,7 +175,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
     for (let doc of items) {
       const query = {
-        _index: this.getPhysicalIndexName(collectionName, this.config),
+        _index: this.getPhysicalIndexName(collectionName),
         _id: doc.id,
       };
       if (parseInt(this.config.elasticsearch.apiVersion) < 6)
@@ -261,7 +262,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
     const searchWithPagination = async (size = 10000) => {
       const searchQueryBody = {
-        index: this.getPhysicalIndexName(collectionName, this.config),
+        index: this.getPhysicalIndexName(collectionName),
         scroll: '2m',
         size,
         body: {
@@ -295,7 +296,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
   async getProductsSkus(ids = []) {
     return new Promise((resolve, reject) => {
       const searchQueryBody = {
-        index: this.getPhysicalIndexName('product', this.config),
+        index: this.getPhysicalIndexName('product'),
         body: {
           query: { terms: { id: ids } },
           sort: [{ "id": "asc" }],
@@ -321,7 +322,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
   countDocuments(collectionName, query) {
     return new Promise((resolve, reject) => {
       const countQueryBody = {
-        index: this.getPhysicalIndexName(collectionName, this.config),
+        index: this.getPhysicalIndexName(collectionName),
         body: query
       };
 
@@ -336,6 +337,103 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
           }
         }
       });
+    });
+  }
+
+  /**
+   * Copies index content for source index to dest index
+   * @param {string} sourceCollectionName
+   * @param {string} destCollectionName
+   * @returns {Promise<boolean>}
+   */
+  reindex(sourceCollectionName, destCollectionName) {
+    return new Promise((resolve, reject) => {
+      const reindexBody = {
+        waitForCompletion: true,
+        refresh: true,
+        body: {
+          source: {
+            index: sourceCollectionName
+          },
+          dest: {
+            index: destCollectionName
+          }
+        }
+      };
+
+      this.db.reindex(reindexBody, (err, res) => {
+        if (err) {
+          logger.error('Cannot copy index: ', err);
+          reject(err);
+        } else { resolve(res.body); }
+      });
+    });
+  }
+
+  /**
+   * Creates a new ES index with predefined mapping
+   * @param {string} collectionName
+   * @param {object} mapping
+   * @returns {Promise<any>}
+   */
+  createIndex(collectionName, mapping = {}) {
+    return new Promise((resolve, reject) => {
+      const createIndexBody = {
+        index: collectionName,
+        body: mapping
+      };
+
+      this.db.indices.create(createIndexBody, (err, res) => {
+        if (err) {
+          logger.error('Cannot create index: ', err);
+          reject(err);
+        } else { resolve(res); }
+      });
+    });
+  }
+
+  /**
+   * Deletes index
+   * @param {string} collectionName
+   * @returns {Promise<boolean>}
+   */
+  deleteIndex(collectionName) {
+    return new Promise((resolve, reject) => {
+      const deleteIndexBody = {
+        index: collectionName
+      };
+
+      this.db.indices.delete(deleteIndexBody, (err, res) => {
+        if (err) {
+          logger.error('Cannot delete index: ', err);
+          reject(err);
+        } else { resolve(true); }
+      });
+    });
+  }
+
+  /**
+   * Creates a new mapping for index
+   * @param {string} collectionName
+   * @param {object} mapping
+   * @returns {Promise<true>}
+   */
+  remapIndex(collectionName, mapping = {}) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        logger.info(`Reindexing physical index ${this.getPhysicalIndexName(collectionName)}`);
+        await this.deleteIndex(this.getPhysicalIndexName(`${collectionName}_temp`));
+        await this.createIndex(this.getPhysicalIndexName(`${collectionName}_temp`), mapping);
+        await this.reindex(this.getPhysicalIndexName(collectionName), this.getPhysicalIndexName(`${collectionName}_temp`));
+        await this.deleteIndex(this.getPhysicalIndexName(collectionName));
+        await this.createIndex(this.getPhysicalIndexName(collectionName), mapping);
+        const result = await this.reindex(this.getPhysicalIndexName(`${collectionName}_temp`), this.getPhysicalIndexName(collectionName));
+        logger.info(`Reindex complete for index ${this.getPhysicalIndexName(collectionName)}. Took: ${result.took}ms. Created: ${result.created} documents.`);
+
+        resolve(true);
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 

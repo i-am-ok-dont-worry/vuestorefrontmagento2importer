@@ -35,6 +35,11 @@ class MagentoImporter {
 
             adapterInstance.db = this.db;
             adapterInstance.cache = this.cache;
+            adapterInstance.context = this.options;
+
+            if (this.options.ids instanceof Array && this.options.ids.indexOf('full') > -1) {
+                adapterInstance.context.ids = null;
+            }
 
             return adapterInstance;
         } catch (e) {
@@ -107,6 +112,8 @@ class MagentoImporter {
     }
 
     async done () {
+        await this.adapter.afterImport();
+
         const finishedIn = (Date.now() - this.start_time) / 1000;
         await this.clearCache(this.options.adapter.charAt(0));
         await this.clearCache(this.options.adapter.charAt(0).toUpperCase());

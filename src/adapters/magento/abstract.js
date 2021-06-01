@@ -57,6 +57,9 @@ class AbstractMagentoAdapter {
     return Promise.resolve();
   }
 
+  afterImport() {
+    return Promise.resolve();
+  }
 }
 
 module.exports = AbstractMagentoAdapter;
