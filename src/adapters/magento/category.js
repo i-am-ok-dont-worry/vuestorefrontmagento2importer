@@ -44,8 +44,12 @@ class CategoryAdapter extends AbstractMagentoAdapter {
 
     const query = {
       query: {
-        terms: {
-          category_ids: getNestedCategoryIds(category)
+        bool: {
+          must: [
+            { terms: { category_ids: getNestedCategoryIds(category) } },
+            { terms: { status: [1] } },
+            { terms: { visibility: [2,3,4] } }
+          ]
         }
       }
     };
