@@ -69,11 +69,12 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    * @param collectionName collection name
    * @param query query object
   */
-  getDocuments(collectionName, queryBody) {
+  getDocuments(collectionName, queryBody, size) {
     return new Promise((resolve, reject) => {
       const searchQueryBody = {
         index: this.getPhysicalIndexName(collectionName),
-        body: queryBody
+        body: queryBody,
+        ...(size && { size })
       };
 
       if (parseInt(this.config.elasticsearch.apiVersion) < 6)

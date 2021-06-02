@@ -116,7 +116,7 @@ class AttributeAdapter extends AbstractMagentoAdapter {
     try {
       if (this.context.ids || this.context.ids instanceof Array) { return; }
 
-      const attributes = await this.db.getDocuments('attribute');
+      const attributes = await this.db.getDocuments('attribute', {}, 2000);
       const mapping = await MappingUtils.updateProductMapping(attributes);
       await this.db.remapIndex('product', mapping);
     } catch (e) {
