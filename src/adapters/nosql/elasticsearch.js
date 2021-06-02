@@ -329,7 +329,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
       this.db.count(countQueryBody, (err, res) => {
         if (err) {
-          reject(err);
+          resolve(null);
         } else {
           try {
             resolve(res.body.count);

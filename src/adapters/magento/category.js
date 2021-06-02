@@ -57,7 +57,7 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     try {
       return this.db.countDocuments('product', query);
     } catch (e) {
-      return category.product_count;
+      return null;
     }
   }
 
