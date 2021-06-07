@@ -444,7 +444,10 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
             Object.assign(product, { [customAttribute.attribute_code]: attributeValue });
         }
 
-        if (!product.special_price && product['special_from_date']) delete product['special_from_date'];
+        if (!product.special_price && product['special_from_date']) {
+            delete product['special_from_date'];
+            delete product['special_to_date'];
+        }
 
         delete product['custom_attributes'];
     }
@@ -458,7 +461,6 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         try {
             const skus = configurableChildren.map(({ sku }) => sku);
             const stockItems = await Promise.all(skus.map(sku => this.api.stockItems.list(sku)));
-            debugger;
             const qty = stockItems.reduce((acc, stockItem) => acc + (stockItem && stockItem.qty ? stockItem.qty : 0), 0);
 
             return {
