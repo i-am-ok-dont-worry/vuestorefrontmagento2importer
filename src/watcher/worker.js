@@ -1,5 +1,5 @@
 const kue = require('kue');
-const config = require('../config');
+const config = require('config');
 const queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
 const ReindexExecutor = require('./executor');
 const Manager = require('./job-manager');
@@ -25,27 +25,28 @@ class Worker {
      */
     start(callback) {
         queue.process('i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
+            let entity, ids;
             try {
-                const entity = job.data.data.entity;
-                const ids = await this.manager.getQueuedIdsForEntity({ entity });
+                entity = job.data.data.entity;
+                ids = await this.manager.getQueuedIdsForEntity({ entity });
+
                 if (!ids || (ids instanceof Array && ids.length === 0)) {
                     done();
                     return;
                 }
 
-                console.warn('Processing: ', JSON.stringify(job.data));
-
                 this.busy = true;
                 this.ctx = ctx;
                 await this[_process]({ data: { entity, ids }});
                 await this.manager.clearReindexQueueForEntity({ entity, ids });
-                await this.manager.clearJobMetadata({ entity, ids });
 
                 console.log('Done', entity, 'for ids: ', ids);
+                this.busy = false;
                 safeCallback(callback);
                 done();
             } catch (e) {
                 this.busy = false;
+                await this.manager.clearReindexQueueForEntity({ entity, ids });
                 console.warn('Error while running job: ', e);
                 done(e);
             }
