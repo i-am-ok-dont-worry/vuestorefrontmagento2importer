@@ -160,7 +160,7 @@ class ReindexExecutor {
      */
     [_handleProductsReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'product_new' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'product' });
 
             importer.run(() => {
                 resolve();

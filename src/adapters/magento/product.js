@@ -29,7 +29,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     }
 
     getEntityType () {
-        return 'product_new';
+        return 'product';
     }
 
     getSwappedEntityType () {
