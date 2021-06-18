@@ -39,7 +39,11 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    */
   getPhysicalIndexName(collectionName) {
     if (parseInt(this.config.elasticsearch.apiVersion) >= 6) {
-      return `${this.config.elasticsearch.index}_${collectionName}${MultiStoreUtils.isDefaultStoreView(this.config.storeCode) ? '' : `_${this.config.storeCode}`}`
+      if (MultiStoreUtils.isDefaultStoreView(this.config.storeCode)) {
+        return `${this.config.elasticsearch.index}_${collectionName}`;
+      } else {
+        return `${this.config.elasticsearch.index}_${this.config.storeCode}_${collectionName}`;
+      }
     } else {
       return this.config.elasticsearch.index
     }
