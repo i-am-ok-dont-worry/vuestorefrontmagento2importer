@@ -2,6 +2,7 @@
 const AbstractNosqlAdapter = require('./abstract');
 const elasticsearch = require('@elastic/elasticsearch');
 const AgentKeepAlive = require('agentkeepalive');
+const MultiStoreUtils = require('../../helpers/multistore-utils');
 const AgentKeepAliveHttps = require('agentkeepalive').HttpsAgent;
 
 
@@ -38,7 +39,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
    */
   getPhysicalIndexName(collectionName) {
     if (parseInt(this.config.elasticsearch.apiVersion) >= 6) {
-      return `${this.config.elasticsearch.index}_${collectionName}`
+      return `${this.config.elasticsearch.index}_${collectionName}${MultiStoreUtils.isDefaultStoreView(this.config.storeCode) ? '' : `_${this.config.storeCode}`}`
     } else {
       return this.config.elasticsearch.index
     }

@@ -3,8 +3,6 @@
 let AbstractMagentoAdapter = require('./abstract');
 const CacheKeys = require('./cache_keys');
 const util = require('util');
-const request = require('request');
-const _slugify = require('../../helpers/slugify');
 const uniqBy = require('lodash/uniqBy');
 
 class CategoryAdapter extends AbstractMagentoAdapter {

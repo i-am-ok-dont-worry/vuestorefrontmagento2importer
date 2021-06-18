@@ -19,7 +19,7 @@ class MagentoImporter {
         this.start_time = Date.now();
 
         let factory = new AdapterFactory(config);
-        this.db = factory.getAdapter('nosql', 'elasticsearch');
+        this.db = factory.getAdapter('nosql', 'elasticsearch', this.options.storeCode);
         this.db.connect(async () => {
             this.options.db = this.db;
         });
@@ -31,7 +31,7 @@ class MagentoImporter {
     getAdapter (adapterName) {
         try {
             const factory = new AdapterFactory(config);
-            const adapterInstance = factory.getAdapter('magento', adapterName);
+            const adapterInstance = factory.getAdapter('magento', adapterName, this.options.storeCode);
 
             adapterInstance.db = this.db;
             adapterInstance.cache = this.cache;
