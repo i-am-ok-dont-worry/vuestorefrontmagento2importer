@@ -96,9 +96,9 @@ class CategoryAdapter extends AbstractMagentoAdapter {
         const cat = flattenCategories.find(({ id }) => id == category.id);
 
         if (cat && cat.hasOwnProperty('product_count')) {
-          return { ...category, product_count: cat.product_count };
+          return { ...cat, ...category, product_count: cat.product_count };
         } else {
-          return category;
+          return { ...cat, ...category };
         }
       });
 
@@ -126,6 +126,7 @@ class CategoryAdapter extends AbstractMagentoAdapter {
       delete item['custom_attributes'];
     }
 
+    delete item['children_data'];
     return item;
   }
 
