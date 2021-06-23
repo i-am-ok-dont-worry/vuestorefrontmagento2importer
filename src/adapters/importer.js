@@ -51,35 +51,40 @@ class MagentoImporter {
     async run (callback = () => {}) {
         this.callback = callback;
 
-        if (!this.options.use_paging) {
-            const data = await this.adapter.getSourceData(this.options);
-            const items = this.adapter.prepareItems(data);
-            this.total_count = items.length;
+        try {
+            if (!this.options.use_paging) {
+                const data = await this.adapter.getSourceData(this.options);
+                const items = this.adapter.prepareItems(data);
+                this.total_count = items.length;
 
-            for (let job of items) {
-                this.pending.push(job);
-            }
+                for (let job of items) {
+                    this.pending.push(job);
+                }
 
-            await this.start();
-        } else {
-            const data = await this.adapter.getSourceData(this.options);
-            this.total_count = data.total_count;
-
-            const isDone = Math.ceil(this.total_count / this.options.page_size) === this.options.page;
-            const items = this.adapter.prepareItems(data);
-
-            for (let job of items) {
-                this.pending.push(job);
-            }
-
-            await this.startPaged();
-
-            if (isDone) {
-                this.done();
+                await this.start();
             } else {
-                logger.info(`Switching to page ${this.options.page}`);
-                this.run(callback);
+                const data = await this.adapter.getSourceData(this.options);
+                this.total_count = data.total_count;
+
+                const isDone = Math.ceil(this.total_count / this.options.page_size) === this.options.page;
+                const items = this.adapter.prepareItems(data);
+
+                for (let job of items) {
+                    this.pending.push(job);
+                }
+
+                await this.startPaged();
+
+                if (isDone) {
+                    this.done();
+                } else {
+                    logger.info(`Switching to page ${this.options.page}`);
+                    this.run(callback);
+                }
             }
+        } catch (e) {
+            logger.error('Cannot finish import job: ', e.message || e);
+            callback();
         }
     }
 
