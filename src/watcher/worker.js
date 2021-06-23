@@ -11,11 +11,12 @@ const safeCallback = (callback) => {
 
 class Worker {
 
-    constructor ({ maxActiveJobs = 1, env } = {}) {
+    constructor ({ maxActiveJobs = 1, env, store } = {}) {
         this.busy = false;
         this.ctx = null;
+        this.store = store;
         this.maxActiveJobs = maxActiveJobs;
-        this.handler = new ReindexExecutor(env);
+        this.handler = new ReindexExecutor(env, store);
         this.manager= new Manager();
     }
 
@@ -24,7 +25,7 @@ class Worker {
      * @param callback Callback function called when job has been processed
      */
     start(callback) {
-        queue.process('i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
+        queue.process(this.store ? `i:mage-data-${this.store}` : 'i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
             let entity, ids;
             try {
                 entity = job.data.data.entity;
@@ -40,7 +41,6 @@ class Worker {
                 await this[_process]({ data: { entity, ids }});
                 await this.manager.clearReindexQueueForEntity({ entity, ids });
 
-                console.log('Done', entity, 'for ids: ', ids);
                 this.busy = false;
                 safeCallback(callback);
                 done();

@@ -21,7 +21,7 @@ class ReindexJobCreator {
         this._jobManager = new JobManager();
     }
 
-    async createReindexJob ({ entity, ids, priority = 'normal' }) {
+    async createReindexJob ({ entity, ids, store, priority = 'normal' }) {
         if (!entity || entity.length === 0) { throw new Error(`Invalid entity argument. Entity must be one of following: ${Object.values(EntityType).join(', ')}`); }
         if (!ids || !(ids instanceof Array) || ids.length === 0) { throw new Error(`Invalid ids argument. Argument must be an array`); }
         if (!Object.values(EntityType).includes(entity)) { throw new Error('Entity type not supported'); }
@@ -34,10 +34,10 @@ class ReindexJobCreator {
         if (shouldAbort) { return Promise.resolve(); }
         await this._jobManager.enqueueReindexForEntity({ entity, ids });
 
-        return this[_createJobDataFunc]({ entity, ids, priority, allowedJobs });
+        return this[_createJobDataFunc]({ entity, store, priority, allowedJobs });
     };
 
-    [_createJobDataFunc] ({ entity, ids, priority, allowedJobs }) {
+    [_createJobDataFunc] ({ entity, store, priority, allowedJobs }) {
         return new Promise(async (resolve, reject) => {
             const jobData = {
                 title: `mage import`,
@@ -71,8 +71,9 @@ class ReindexJobCreator {
             };
 
             jobData.data.ids = await getUniqJobIds();
+            jobData.data.store = store;
 
-            queue.create('i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
+            queue.create(store ? `i:mage-data-${store}` : 'i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
                 .removeOnComplete( true )
                 .attempts(2)
                 .backoff( { delay: 20*1000, type:'fixed' } )
