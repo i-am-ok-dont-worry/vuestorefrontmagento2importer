@@ -19,7 +19,7 @@ program.command('watch')
     .action((cmd) => {
         const worker = new Worker({ maxActiveJobs: cmd.maxActiveJobs, env: cmd.env, store: cmd.store });
         worker.start();
-        console.warn('Worker is running in the background');
+        console.warn('Worker is running in the background. ', cmd.store ? 'Store code: ' + cmd.store : '');
     });
 
 program.command('health')
