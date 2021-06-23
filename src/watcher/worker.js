@@ -3,6 +3,7 @@ const config = require('config');
 const queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
 const ReindexExecutor = require('./executor');
 const Manager = require('./job-manager');
+const MultistoreUtils = require('../helpers/multistore-utils');
 
 const _process = Symbol();
 const safeCallback = (callback) => {
@@ -25,7 +26,8 @@ class Worker {
      * @param callback Callback function called when job has been processed
      */
     start(callback) {
-        queue.process(this.store ? `i:mage-data-${this.store}` : 'i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
+        const isDefaultStore = MultistoreUtils.isDefaultStoreView(this.store);
+        queue.process(this.store && !isDefaultStore ? `i:mage-data-${this.store}` : 'i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
             let entity, ids;
             try {
                 entity = job.data.data.entity;

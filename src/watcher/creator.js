@@ -4,6 +4,7 @@ const config = require('../config');
 const queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
 const JobManager = require('./job-manager');
 const difference = require('lodash/difference');
+const MultiStoreUtils = require('../helpers/multistore-utils');
 
 
 const _createJobDataFunc = Symbol();
@@ -72,8 +73,9 @@ class ReindexJobCreator {
 
             jobData.data.ids = await getUniqJobIds();
             jobData.data.store = store;
+            const isDefaultStore = MultiStoreUtils.isDefaultStoreView(store);
 
-            queue.create(store ? `i:mage-data-${store}` : 'i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
+            queue.create(store && !isDefaultStore ? `i:mage-data-${store}` : 'i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
                 .removeOnComplete( true )
                 .attempts(2)
                 .backoff( { delay: 20*1000, type:'fixed' } )
