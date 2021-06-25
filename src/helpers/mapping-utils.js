@@ -24,6 +24,14 @@ class MappingUtils {
                                 }
                             });
                         }
+
+                        if (output.mappings.properties.hasOwnProperty('configurable_children') && !output.mappings.properties.configurable_children.properties.hasOwnProperty(att.attribute_code)) {
+                            Object.assign(output.mappings.properties.configurable_children.properties, {
+                                [att.attribute_code]: {
+                                    type: 'keyword'
+                                }
+                            })
+                        }
                     }
                 });
 
