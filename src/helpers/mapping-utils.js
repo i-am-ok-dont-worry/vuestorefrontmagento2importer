@@ -42,7 +42,7 @@ class MappingUtils {
             return newMapping;
         } catch (e) {
             logger.error(`Cannot update mapping file`, e.message || e);
-            return {};
+            throw e;
         }
     }
 }
