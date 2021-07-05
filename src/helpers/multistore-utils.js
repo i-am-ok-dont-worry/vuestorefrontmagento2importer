@@ -12,6 +12,17 @@ class MultiStoreUtils {
             return 'all';
         }
     }
+
+    static isDefaultStoreView(storeView) {
+        try {
+            if (!storeView || storeView.length === 0) { return true; }
+            if (storeView === 'all') { return true; }
+            const [defaultStore] = config.availableStores || ['all'];
+            return defaultStore === storeView;
+        } catch (e) {
+            return true;
+        }
+    }
 }
 
 module.exports = MultiStoreUtils;
