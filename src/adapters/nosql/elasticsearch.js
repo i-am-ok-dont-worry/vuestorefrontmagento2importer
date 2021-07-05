@@ -423,7 +423,7 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
     return new Promise(async (resolve, reject) => {
       try {
         logger.info(`Reindexing physical index ${this.getPhysicalIndexName(collectionName)}`);
-        await this.deleteIndex(this.getPhysicalIndexName(`${collectionName}_temp`));
+        try { await this.deleteIndex(this.getPhysicalIndexName(`${collectionName}_temp`)); } catch (e) {}
         await this.createIndex(this.getPhysicalIndexName(`${collectionName}_temp`), mapping);
         await this.reindex(this.getPhysicalIndexName(collectionName), this.getPhysicalIndexName(`${collectionName}_temp`));
         await this.deleteIndex(this.getPhysicalIndexName(collectionName));
