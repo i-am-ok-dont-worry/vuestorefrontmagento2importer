@@ -9,10 +9,10 @@ let logger = require('./log');
 program
     .command('attributes')
     .option('--ids <ids>', 'ids', (value) => value.split(','))
-    .option('--store <store>', 'store')
+    .option('--storeCode <storeCode>', 'storeCode')
     .action((cmd) => {
         let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
-        let storeCode = cmd.store || MultiStoreUtils.getStoreCode();
+        let storeCode = cmd.storeCode || MultiStoreUtils.getStoreCode();
         let importer = new MagentoImporter({ ids, adapter: 'attribute', storeCode });
 
         importer.run(() => {
@@ -23,10 +23,10 @@ program
 program
     .command('categories')
     .option('--ids <ids>', 'ids', (value) => value.split(','))
-    .option('--store <store>', 'store')
+    .option('--storeCode <storeCode>', 'storeCode')
     .action((cmd) => {
         let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
-        let storeCode = cmd.store || MultiStoreUtils.getStoreCode();
+        let storeCode = cmd.storeCode || MultiStoreUtils.getStoreCode();
         let importer = new MagentoImporter({ ids, adapter: 'category', storeCode });
 
         importer.run(() => {
@@ -37,10 +37,10 @@ program
 program
     .command('products')
     .option('--ids <ids>', 'ids', (value) => value.split(','))
-    .option('--store <store>', 'store')
+    .option('--storeCode <storeCode>', 'storeCode')
     .action((cmd) => {
         let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
-        let storeCode = cmd.store || MultiStoreUtils.getStoreCode();
+        let storeCode = cmd.storeCode || MultiStoreUtils.getStoreCode();
         let importer = new MagentoImporter({ ids, adapter: 'product', use_paging: !ids, storeCode });
 
         importer.run(() => {
@@ -51,10 +51,10 @@ program
 program
     .command('stocks')
     .option('--ids <ids>', 'ids', (value) => value.split(','))
-    .option('--store <store>', 'store')
+    .option('--storeCode <storeCode>', 'storeCode')
     .action((cmd) => {
         let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
-        let storeCode = cmd.store || MultiStoreUtils.getStoreCode();
+        let storeCode = cmd.storeCode || MultiStoreUtils.getStoreCode();
         let importer = new MagentoImporter({ ids, adapter: 'stock', storeCode });
 
         importer.run(() => {
@@ -65,10 +65,10 @@ program
 program
     .command('pages')
     .option('--ids <ids>', 'ids', (value) => value.split(','))
-    .option('--store <store>', 'store')
+    .option('--storeCode <storeCode>', 'storeCode')
     .action((cmd) => {
         let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
-        let storeCode = cmd.store || MultiStoreUtils.getStoreCode();
+        let storeCode = cmd.storeCode || MultiStoreUtils.getStoreCode();
         let importer = new MagentoImporter({ ids, adapter: 'cms_page', storeCode });
 
         importer.run(() => {
@@ -79,10 +79,10 @@ program
 program
     .command('taxrule')
     .option('--ids <ids>', 'ids', (value) => value.split(','))
-    .option('--store <store>', 'store')
+    .option('--storeCode <storeCode>', 'storeCode')
     .action((cmd) => {
         let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
-        let storeCode = cmd.store || MultiStoreUtils.getStoreCode();
+        let storeCode = cmd.storeCode || MultiStoreUtils.getStoreCode();
         let importer = new MagentoImporter({ ids, adapter: 'taxrule', storeCode });
 
         importer.run(() => {
@@ -93,10 +93,10 @@ program
 program
     .command('reviews')
     .option('--ids <ids>', 'ids', (value) => value.split(','))
-    .option('--store <store>', 'store')
+    .option('--storeCode <storeCode>', 'storeCode')
     .action((cmd) => {
         let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
-        let storeCode = cmd.store || MultiStoreUtils.getStoreCode();
+        let storeCode = cmd.storeCode || MultiStoreUtils.getStoreCode();
         let importer = new MagentoImporter({ ids, adapter: 'review', storeCode });
 
         importer.run(() => {

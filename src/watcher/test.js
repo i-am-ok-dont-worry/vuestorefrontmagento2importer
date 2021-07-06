@@ -9,12 +9,12 @@ const testUniqJobs = async () => {
         await creator.createReindexJob({ entity: 'product', ids: nextIds });
     }*/
 
-    await creator.createReindexJob({ entity: 'category', ids: [67], store: 'lm_pl' });
+    await creator.createReindexJob({ entity: 'category', ids: [67], storeCode: 'lm_pl' });
     testWatcher();
 };
 
 const testWatcher = async () => {
-    const worker = new Worker({ store: 'lm_pl' });
+    const worker = new Worker({ storeCode: 'lm_pl' });
     worker.start();
 };
 

@@ -72,9 +72,9 @@ class ReindexExecutor {
         [EntityType.STOCK]: _handleStocksReindex
     };
 
-    constructor (env, store) {
+    constructor (env, storeCode) {
         this.env = Object.assign({}, getMagentoDefaultConfig(process.env.STORE_CODE || 1), env, process.env);
-        this.store = store;
+        this.storeCode = storeCode;
     }
 
     run ({ entity, ids }) {
@@ -132,7 +132,7 @@ class ReindexExecutor {
      */
     [_handlePagesReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_page', storeCode: this.store });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_page', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -147,7 +147,7 @@ class ReindexExecutor {
      */
     [_handleBlocksReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_block', storeCode: this.store });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_block', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -161,7 +161,7 @@ class ReindexExecutor {
      */
     [_handleProductsReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'product', storeCode: this.store });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'product', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -175,7 +175,7 @@ class ReindexExecutor {
      */
     [_handleCategoriesProductsReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'productcategories', storeCode: this.store });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'productcategories', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -189,7 +189,7 @@ class ReindexExecutor {
      */
     [_handleCategoriesReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'category', storeCode: this.store });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'category', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -203,7 +203,7 @@ class ReindexExecutor {
      */
     [_handleReviewsReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'review', storeCode: this.store });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'review', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -217,7 +217,7 @@ class ReindexExecutor {
      */
     [_handleTaxRulesReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'taxrule', storeCode: this.store });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'taxrule', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -231,7 +231,7 @@ class ReindexExecutor {
      */
     [_handleStocksReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'stock', storeCode: this.store });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'stock', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();

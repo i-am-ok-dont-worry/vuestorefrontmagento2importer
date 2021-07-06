@@ -12,12 +12,12 @@ const safeCallback = (callback) => {
 
 class Worker {
 
-    constructor ({ maxActiveJobs = 1, env, store } = {}) {
+    constructor ({ maxActiveJobs = 1, env, storeCode } = {}) {
         this.busy = false;
         this.ctx = null;
-        this.store = store;
+        this.storeCode = storeCode;
         this.maxActiveJobs = maxActiveJobs;
-        this.handler = new ReindexExecutor(env, store);
+        this.handler = new ReindexExecutor(env, storeCode);
         this.manager= new Manager();
     }
 
@@ -26,8 +26,8 @@ class Worker {
      * @param callback Callback function called when job has been processed
      */
     start(callback) {
-        const isDefaultStore = MultistoreUtils.isDefaultStoreView(this.store);
-        queue.process(this.store && !isDefaultStore ? `i:mage-data-${this.store}` : 'i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
+        const isDefaultStore = MultistoreUtils.isDefaultStoreView(this.storeCode);
+        queue.process(this.storeCode && !isDefaultStore ? `i:mage-data-${this.storeCode}` : 'i:mage-data', Number(this.maxActiveJobs), async (job, ctx, done) => {
             let entity, ids;
             try {
                 entity = job.data.data.entity;

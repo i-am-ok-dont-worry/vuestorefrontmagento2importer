@@ -15,11 +15,11 @@ program.command('createjob')
 program.command('watch')
     .option('--maxActiveJobs <maxActiveJobs>', 'Maximum number of parallel workers', (value) => parseInt(value, 10))
     .option('--env <env>', 'Environment configuration')
-    .option('--store <store>', 'Store code')
+    .option('--storeCode <storeCode>', 'Store code')
     .action((cmd) => {
-        const worker = new Worker({ maxActiveJobs: cmd.maxActiveJobs, env: cmd.env, store: cmd.store });
+        const worker = new Worker({ maxActiveJobs: cmd.maxActiveJobs, env: cmd.env, storeCode: cmd.storeCode });
         worker.start();
-        console.warn('Worker is running in the background. ', cmd.store ? 'Store code: ' + cmd.store : '');
+        console.warn('Worker is running in the background. ', cmd.storeCode ? 'Store code: ' + cmd.storeCode : '');
     });
 
 program.command('health')
