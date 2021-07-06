@@ -1,6 +1,7 @@
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
 const program = require('commander');
+const ESRemapper = require('./helpers/es-remapper');
 const MagentoImporter = require('./adapters/importer');
 const MultiStoreUtils = require('./helpers/multistore-utils');
 let logger = require('./log');
@@ -102,6 +103,14 @@ program
         importer.run(() => {
             process.exit();
         });
+    });
+
+program
+    .command('remap')
+    .action(async (cmd) => {
+        let mapper = new ESRemapper();
+        await mapper.updateElasticSearchMapping();
+        process.exit();
     });
 
 program.parse(process.argv);
