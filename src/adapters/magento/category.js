@@ -28,25 +28,11 @@ class CategoryAdapter extends AbstractMagentoAdapter {
   }
 
   getProductCount(category) {
-    const getNestedCategoryIds = (cat) => {
-      const ids = [];
-      const getChildrenCategoryIds = (item) => {
-        ids.push(item.id);
-
-        if (item.children_data && item.children_data.length) {
-          item.children_data.forEach(i => getChildrenCategoryIds(i));
-        }
-      };
-
-      getChildrenCategoryIds(cat);
-      return ids;
-    };
-
     const query = {
       query: {
         bool: {
           must: [
-            { terms: { category_ids: getNestedCategoryIds(category) } },
+            { terms: { category_ids: [category.id, ...category.children.split(',')] } },
             { terms: { status: [1] } },
             { terms: { visibility: [2,3,4] } }
           ]
@@ -88,20 +74,7 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     };
 
     if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
-      const root = await this.api.categories.list();
-      const flattenCategories = expand(root);
       let promises = await Promise.all(context.ids.map(id => this.api.categories.getSingle(id)));
-
-      promises = promises.map(category => {
-        const cat = flattenCategories.find(({ id }) => id == category.id);
-
-        if (cat && cat.hasOwnProperty('product_count')) {
-          return { ...category, product_count: cat.product_count };
-        } else {
-          return category;
-        }
-      });
-
       return promises;
     }
 
