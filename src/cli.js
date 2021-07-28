@@ -35,7 +35,7 @@ program
     .option('--ids <ids>', 'ids', (value) => value.split(','))
     .action((cmd) => {
         let ids = cmd.ids && cmd.ids instanceof Array && cmd.ids.length > 0 ? cmd.ids : null;
-        let importer = new MagentoImporter({ ids, adapter: 'product_new', use_paging: !ids });
+        let importer = new MagentoImporter({ ids, adapter: 'product', use_paging: !ids });
 
         importer.run(() => {
             process.exit();

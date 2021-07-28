@@ -250,7 +250,15 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
 
                 if (prOption.custom_attributes) {
                     for (let opt of prOption.custom_attributes) {
-                        confChild[opt.attribute_code] = opt.value
+                        const attributeMetadata = this.attributesMap[opt.attribute_code];
+                        let attributeValue = opt.value;
+                        if (attributeMetadata.frontend_input === 'multiselect') {
+                            try {
+                                attributeValue = attributeValue.split(',');
+                            } catch (e) {}
+                        }
+
+                        confChild[opt.attribute_code] = attributeValue;
                     }
                 }
 
@@ -426,14 +434,13 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
      * @returns {Promise<Product>}
      */
     async processAttributes (product) {
-        let attributesMap = {};
-        try { attributesMap = await this.fetchAttributes(); } catch (e) {
+        try { this.attributesMap = await this.fetchAttributes(); } catch (e) {
             console.warn('Cannot fetch magento attributes metadata');
             return;
         }
 
         for (let customAttribute of product.custom_attributes || []) {
-            const attributeMetadata = attributesMap[customAttribute.attribute_code];
+            const attributeMetadata = this.attributesMap[customAttribute.attribute_code];
             let attributeValue = customAttribute.value;
             if (attributeMetadata.frontend_input === 'multiselect') {
                 try {
