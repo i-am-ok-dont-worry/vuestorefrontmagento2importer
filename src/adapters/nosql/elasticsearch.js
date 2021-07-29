@@ -406,8 +406,8 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
 
       this.db.indices.delete(deleteIndexBody, (err, res) => {
         if (err) {
-          logger.error('Cannot delete index: ', err);
-          reject(err);
+          logger.error('Cannot delete index: ', err.message || '');
+          resolve();
         } else { resolve(true); }
       });
     });
