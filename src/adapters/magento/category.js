@@ -174,6 +174,23 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     return item;
   }
 
+  async afterImport() {
+    try {
+      if (this.context.ids || this.context.ids instanceof Array) { return; }
+      await this.db.remapIndex('category', {
+        mappings: {
+          properties: {
+            url_path: { type: 'keyword' }
+          }
+        }
+      });
+    } catch (e) {
+      logger.error('Cannot create a new mapping for category index: ', e.message || e);
+    }
+
+    return Promise.resolve();
+  }
+
   storeToCache(item) {
     let key = util.format(CacheKeys.CACHE_KEY_CATEGORY, item.id);
     this.cache.set(key, JSON.stringify(item));
