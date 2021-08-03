@@ -23,7 +23,7 @@ class MultiStoreUtils {
             if (!storeView || storeView.length === 0) { return true; }
             if (storeView === 'all') { return true; }
             // Support for next-api
-            if (config.hasOwnProperty('storeViews')) {
+            if (config.hasOwnProperty('storeViews') && config.storeViews.default_store_code) {
                 return storeView === config.storeViews.default_store_code;
             }
 
