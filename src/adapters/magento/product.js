@@ -258,6 +258,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                             } catch (e) {}
                         }
 
+                        attributeValue = this._processAttribute(opt.attribute_code, opt.value);
                         confChild[opt.attribute_code] = attributeValue;
                     }
                 }
@@ -448,9 +449,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                 } catch (e) {}
             }
 
-            if (customAttribute.attribute_code === 'path_urls') {
-                try { attributeValue = JSON.parse(customAttribute.value) } catch (e) {}
-            }
+            attributeValue = this._processAttribute(customAttribute.attribute_code, customAttribute.value);
 
             Object.assign(product, { [customAttribute.attribute_code]: attributeValue });
         }
@@ -480,6 +479,14 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         } catch (e) {
             return null;
         }
+    }
+
+    _processAttribute (attributeCode, attributeValue) {
+        if (attributeCode === 'path_urls') {
+            try { return JSON.parse(attributeValue) } catch (e) {}
+        }
+
+        return attributeValue;
     }
 }
 
