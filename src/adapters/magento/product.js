@@ -448,6 +448,10 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
                 } catch (e) {}
             }
 
+            if (customAttribute.attribute_code === 'path_urls') {
+                try { attributeValue = JSON.parse(customAttribute.value) } catch (e) {}
+            }
+
             Object.assign(product, { [customAttribute.attribute_code]: attributeValue });
         }
 
