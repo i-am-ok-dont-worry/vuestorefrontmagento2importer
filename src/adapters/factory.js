@@ -6,13 +6,13 @@ class AdapterFactory {
     this.config = app_config;
   }
 
-   getAdapter (adapter_type, driver) {
+   getAdapter (adapter_type, driver, storeCode) {
     let adapter_class = require('./' + adapter_type + '/' + driver);
 
     if (!adapter_class) {
       throw new Error(`Invalid adapter ${adapter_type} / ${driver}`);
     } else {
-      let adapter_instance = new adapter_class(this.config);
+      let adapter_instance = new adapter_class({ ...this.config, storeCode });
 
       if((typeof adapter_instance.isValidFor == 'function') && !adapter_instance.isValidFor(driver))
         throw new Error(`Not valid adapter class or adapter is not valid for ${driver}`);

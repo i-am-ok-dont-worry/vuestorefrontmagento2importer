@@ -31,7 +31,7 @@ module.exports.RestClient = function (options) {
             request({
                 url: request_data.url,
                 method: request_data.method,
-                headers: /*{ Authorization: `Bearer ${token.public}` },*/ oauth.toHeader(oauth.authorize(request_data, token)),
+                headers: { Authorization: `Bearer ${token.public}` },
                 json: true,
                 body: request_data.body,
             }, function (error, response, body) {

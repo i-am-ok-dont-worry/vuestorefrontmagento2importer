@@ -3,8 +3,6 @@
 let AbstractMagentoAdapter = require('./abstract');
 const CacheKeys = require('./cache_keys');
 const util = require('util');
-const request = require('request');
-const _slugify = require('../../helpers/slugify');
 const uniqBy = require('lodash/uniqBy');
 
 class CategoryAdapter extends AbstractMagentoAdapter {
@@ -57,7 +55,7 @@ class CategoryAdapter extends AbstractMagentoAdapter {
     try {
       return this.db.countDocuments('product', query);
     } catch (e) {
-      return category.product_count;
+      return null;
     }
   }
 
@@ -174,6 +172,23 @@ class CategoryAdapter extends AbstractMagentoAdapter {
    */
   normalizeDocumentFormat(item) {
     return item;
+  }
+
+  async afterImport() {
+    try {
+      if (this.context.ids || this.context.ids instanceof Array) { return; }
+      await this.db.remapIndex('category', {
+        mappings: {
+          properties: {
+            url_path: { type: 'keyword' }
+          }
+        }
+      });
+    } catch (e) {
+      logger.error('Cannot create a new mapping for category index: ', e.message || e);
+    }
+
+    return Promise.resolve();
   }
 
   storeToCache(item) {
