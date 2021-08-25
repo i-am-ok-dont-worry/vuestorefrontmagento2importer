@@ -3,6 +3,8 @@ const kue = require('kue');
 const config = require('../config');
 const queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
 const JobManager = require('./job-manager');
+const difference = require('lodash/difference');
+const MultiStoreUtils = require('../helpers/multistore-utils');
 
 
 const _createJobDataFunc = Symbol();
@@ -20,11 +22,12 @@ class ReindexJobCreator {
         this._jobManager = new JobManager();
     }
 
-    async createReindexJob ({ entity, ids, priority = 'normal' }) {
+    async createReindexJob ({ entity, ids, storeCode, priority = 'normal' }) {
         if (!entity || entity.length === 0) { throw new Error(`Invalid entity argument. Entity must be one of following: ${Object.values(EntityType).join(', ')}`); }
         if (!ids || !(ids instanceof Array) || ids.length === 0) { throw new Error(`Invalid ids argument. Argument must be an array`); }
         if (!Object.values(EntityType).includes(entity)) { throw new Error('Entity type not supported'); }
         if (priority && !Object.keys(ReindexJobCreator.Priority).includes(priority)) { throw new Error('Priority not supported'); }
+        ids = ids.map(i => String(i));
 
         const allowedJobs = await this._jobManager.getUniqueJobs({ entity, ids });
         const shouldAbort = this[_shouldAbort](ids, allowedJobs);
@@ -32,30 +35,54 @@ class ReindexJobCreator {
         if (shouldAbort) { return Promise.resolve(); }
         await this._jobManager.enqueueReindexForEntity({ entity, ids });
 
-        return this[_createJobDataFunc]({ entity, ids, priority, allowedJobs });
+        return this[_createJobDataFunc]({ entity, storeCode, priority, allowedJobs });
     };
 
-    [_createJobDataFunc] ({ entity, ids, priority, allowedJobs }) {
-        return new Promise((resolve, reject) => {
+    [_createJobDataFunc] ({ entity, storeCode, priority, allowedJobs }) {
+        return new Promise(async (resolve, reject) => {
             const jobData = {
                 title: `mage import`,
                 data: {
-                    entity,
-                    // ...(ids && ids.length && { ids })
+                    entity
                 }
             };
 
-            if (allowedJobs) { jobData.data.ids = allowedJobs }
-            // if (ids.includes('full')) { delete jobData.data.ids; }
+            const getUniqJobIds = () => {
+                return new Promise((resolve, reject) => {
+                    queue.inactive((err, ids) => {
+                        if (!err) {
+                            if (ids && ids instanceof Array && ids.length === 0) {
+                                resolve(allowedJobs);
+                            } else {
+                                ids.forEach(( id ) => {
+                                    kue.Job.get( id, (err, { data }) => {
+                                        try {
+                                            const { data: jobData } = data;
+                                            const diff = difference(jobData.ids.map(String), allowedJobs.map(String));
+                                            resolve(diff);
+                                        } catch (e) {
+                                            resolve(allowedJobs);
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    });
+                });
+            };
 
-            const job = queue.create('i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
+            jobData.data.ids = await getUniqJobIds();
+            jobData.data.storeCode = storeCode;
+            const isDefaultStore = MultiStoreUtils.isDefaultStoreView(storeCode);
+
+            queue.create(storeCode && !isDefaultStore ? `i:mage-data-${storeCode}` : 'i:mage-data', jobData).priority(ReindexJobCreator.Priority[priority] || ReindexJobCreator.Priority.normal)
                 .removeOnComplete( true )
                 .attempts(2)
                 .backoff( { delay: 20*1000, type:'fixed' } )
                 .save(async (err) => {
-                    if (err) { reject(err); }
-                    else {
-                        // await this._jobManager.saveJob({ entity, ids, jobId: job.id });
+                    if (err) {
+                        reject(err);
+                    } else {
                         resolve();
                     }
                 });

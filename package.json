@@ -1,5 +1,5 @@
 {
-  "name": "mage2vuestorefront",
+  "name": "@grupakmk/mage2vuestorefront",
   "private": true,
   "version": "1.11.1",
   "description": "Magento sync for products, categories, users and orders",

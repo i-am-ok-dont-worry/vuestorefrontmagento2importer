@@ -44,13 +44,11 @@ function getMagentoDefaultConfig (storeCode) {
         SKIP_ATTRIBUTES: false,
         SKIP_TAXRULE: false,
         SKIP_PRODUCTS: false,
-        PRODUCTS_EXCLUDE_DISABLED: config.catalog.excludeDisabledProducts,
         MAGENTO_CONSUMER_KEY: apiConfig.consumerKey,
         MAGENTO_CONSUMER_SECRET: apiConfig.consumerSecret,
         MAGENTO_ACCESS_TOKEN: apiConfig.accessToken,
         MAGENTO_ACCESS_TOKEN_SECRET: apiConfig.accessTokenSecret,
         MAGENTO_URL: apiConfig.url,
-        MAGENTO_MSI_STOCK_ID: config.msi.defaultStockId,
         REDIS_HOST: config.redis.host,
         REDIS_PORT: config.redis.port,
         REDIS_DB: config.redis.db,
@@ -74,8 +72,9 @@ class ReindexExecutor {
         [EntityType.STOCK]: _handleStocksReindex
     };
 
-    constructor (env) {
+    constructor (env, storeCode) {
         this.env = Object.assign({}, getMagentoDefaultConfig(process.env.STORE_CODE || 1), env, process.env);
+        this.storeCode = storeCode;
     }
 
     run ({ entity, ids }) {
@@ -133,7 +132,7 @@ class ReindexExecutor {
      */
     [_handlePagesReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_page' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_page', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -148,7 +147,7 @@ class ReindexExecutor {
      */
     [_handleBlocksReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_block' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'cms_block', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -162,7 +161,7 @@ class ReindexExecutor {
      */
     [_handleProductsReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'product_new' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'product', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -176,7 +175,7 @@ class ReindexExecutor {
      */
     [_handleCategoriesProductsReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'productcategories' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'productcategories', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -190,7 +189,7 @@ class ReindexExecutor {
      */
     [_handleCategoriesReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'category' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'category', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -204,7 +203,7 @@ class ReindexExecutor {
      */
     [_handleReviewsReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'review' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'review', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -218,7 +217,7 @@ class ReindexExecutor {
      */
     [_handleTaxRulesReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'taxrule' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'taxrule', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
@@ -232,7 +231,7 @@ class ReindexExecutor {
      */
     [_handleStocksReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'stock' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'stock', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();

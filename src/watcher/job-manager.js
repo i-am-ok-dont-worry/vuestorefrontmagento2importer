@@ -3,6 +3,7 @@ const config = require('../config');
 const Redis = require('redis');
 const client = Redis.createClient({ ...config.redis });
 const difference = require('lodash/difference');
+const take = require('lodash/take');
 const isEmpty = require('lodash/isEmpty');
 const kue = require('kue');
 
@@ -18,10 +19,12 @@ class JobManager {
      */
     getUniqueJobs ({ entity, ids }) {
         return new Promise((resolve, reject) => {
-            client.hgetall(`i:${entity}:status`, (err, data) => {
-                if (err) { reject(new Error(`Cannot create job: ` + err)); }
-                else if (data && ids && ids.length > 0 && !isEmpty(data)) {
-                    resolve(difference(Object.keys(data), ids));
+            client.smembers(`i:${entity}:queue`, (err, data) => {
+                if (err) {
+                    reject(new Error(`Cannot create job: ` + err));
+                } else if (data && ids && ids.length > 0 && !isEmpty(data)) {
+                    const diff = difference(data, ids);
+                    resolve(diff);
                 } else if (ids && ids.length > 0) {
                     resolve(ids);
                 } else {
@@ -82,6 +85,7 @@ class JobManager {
     }
 
     async clearReindexQueueForEntity ({ entity, ids }) {
+        if (!entity || !ids || ids.length === 0) return Promise.resolve();
         return new Promise((resolve, reject) => {
             client.srem(`i:${entity}:queue`, ...ids, (err) => {
                 if (err) reject();
@@ -94,7 +98,7 @@ class JobManager {
         return new Promise((resolve, reject) => {
             client.smembers(`i:${entity}:queue`, (err, members) => {
                 if (err) reject();
-                else resolve(members);
+                else resolve(take(members, 50));
             });
         });
     }

@@ -1,9 +1,11 @@
 'use strict';
 
+
 let AbstractMagentoAdapter = require('./abstract');
 const CacheKeys = require('./cache_keys');
 const util = require('util');
 const uniqBy = require('lodash/uniqBy');
+const MappingUtils = require('../../helpers/mapping-utils');
 
 class AttributeAdapter extends AbstractMagentoAdapter {
 
@@ -88,11 +90,9 @@ class AttributeAdapter extends AbstractMagentoAdapter {
 
         // store the item into local redis cache
         let key = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, item.attribute_code);
-        // logger.info(`Storing attribute data to cache under: ${key}`);
         this.cache.set(key, JSON.stringify(item));
 
         key = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, item.attribute_id); // store under attribute id as an second option
-        // logger.info(`Storing attribute data to cache under: ${key}`);
         this.cache.set(key, JSON.stringify(item));
       }
 
@@ -106,6 +106,24 @@ class AttributeAdapter extends AbstractMagentoAdapter {
    */
   normalizeDocumentFormat(item) {
     return item;
+  }
+
+  /**
+   * Updates product mapping with new filterable attributes
+   * @returns {Promise<void>}
+   */
+  async afterImport() {
+    try {
+      if (this.context.ids || this.context.ids instanceof Array) { return; }
+
+      const attributes = await this.db.getDocuments('attribute', {}, 2000);
+      const mapping = await MappingUtils.updateProductMapping(attributes);
+      await this.db.remapIndex('product', mapping);
+    } catch (e) {
+      logger.error('Cannot create a new mapping for product index: ', e.message || e);
+    }
+
+    return Promise.resolve();
   }
 }
 
