@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const MultiStoreUtils = require('./multistore-utils');
 
 class MappingUtils {
 
-    static async updateProductMapping (attributes = []) {
+    static async updateProductMapping (attributes = [], storeCode) {
         try {
             const getFilterableAttributes = () => {
                 return attributes.filter(attribute => {
@@ -38,7 +39,14 @@ class MappingUtils {
                 return output;
             };
 
-            const mappingsPath = path.resolve(process.cwd(), 'config', 'mapping.json');
+            let mappingFileName = MultiStoreUtils.isDefaultStoreView(storeCode) ? 'mapping.json' : `mapping_${storeCode}.json`;
+            const doesMappingFileExists = fs.existsSync(path.resolve(process.cwd(), 'config', mappingFileName));
+
+            if (!doesMappingFileExists) {
+                mappingFileName = 'mapping.json';
+            }
+
+            const mappingsPath = path.resolve(process.cwd(), 'config', mappingFileName);
             const mappingBuffer = fs.readFileSync(mappingsPath);
             const mapping = JSON.parse(mappingBuffer);
             const filterableAttributes = getFilterableAttributes();

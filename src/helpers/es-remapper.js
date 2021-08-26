@@ -4,16 +4,16 @@ const MappingUtils = require('./mapping-utils');
 
 class ESRemapper {
 
-    async updateElasticSearchMapping() {
+    async updateElasticSearchMapping(storeCode) {
         try {
             if (!this.db) {
                 let factory = new AdapterFactory(config);
-                this.db = factory.getAdapter('nosql', 'elasticsearch');
+                this.db = factory.getAdapter('nosql', 'elasticsearch', storeCode);
                 await this.connectToES();
             }
 
             const attributes = await this.db.getDocuments('attribute', {}, 2000);
-            const mapping = await MappingUtils.updateProductMapping(attributes);
+            const mapping = await MappingUtils.updateProductMapping(attributes, storeCode);
             await this.db.remapIndex('product', mapping);
 
             logger.info(`ES mapping updated`);
