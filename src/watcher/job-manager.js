@@ -27,7 +27,9 @@ class JobManager {
                         .filter(id => id.split(':')[1] === storeCode)
                         .map(id => id.split(':')[0]);
 
-                    const diff = difference(data, ids);
+                    let diff = data.length ? difference(data, ids) : ids;
+                    diff = diff.map(id => storeCode ? `${id}:${storeCode}` : id);
+
                     resolve(diff);
                 } else if (ids && ids.length > 0) {
                     resolve(ids);
@@ -76,11 +78,11 @@ class JobManager {
         });
     }
 
-    async getQueuedIdsForEntity({ entity }) {
+    async getQueuedIdsForEntity({ entity, storeCode }) {
         return new Promise((resolve, reject) => {
             client.smembers(`i:${entity}:queue`, (err, members) => {
                 if (err) reject();
-                else resolve(take(members, 50));
+                else resolve(take(members, 50).filter(id => id.split(':')[1] === storeCode));
             });
         });
     }

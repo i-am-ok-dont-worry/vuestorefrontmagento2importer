@@ -31,7 +31,7 @@ class Worker {
             let entity, ids;
             try {
                 entity = job.data.data.entity;
-                ids = await this.manager.getQueuedIdsForEntity({ entity });
+                ids = await this.manager.getQueuedIdsForEntity({ entity, storeCode: this.storeCode });
 
                 if (!ids || (ids instanceof Array && ids.length === 0)) {
                     done();
