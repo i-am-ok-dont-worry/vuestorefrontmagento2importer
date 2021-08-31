@@ -5,14 +5,30 @@ class MultiStoreUtils {
     static getStoreCode() {
         try {
             // Support for next api
-            if (config.hasOwnProperty('storeViews')) {
+            if (config.hasOwnProperty('storeViews') && config.storeViews.default_store_code) {
                 return config.storeViews.default_store_code;
             }
 
             const [defaultStore] = config.availableStores || ['all'];
             const storeView = config['storeViews'][defaultStore];
 
+            debugger;
             return storeView.storeCode || 'all';
+        } catch (e) {
+            debugger;
+            return 'all';
+        }
+    }
+
+    static getDefaultStoreCode() {
+        try {
+            // Support for next api
+            if (config.hasOwnProperty('storeViews') && config.storeViews.default_store_code) {
+                return config.storeViews.default_store_code;
+            }
+
+            const [defaultStore] = config.availableStores || ['all'];
+            return defaultStore;
         } catch (e) {
             return 'all';
         }

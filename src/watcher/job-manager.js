@@ -81,6 +81,7 @@ class JobManager {
 
     async getQueuedIdsForEntity({ entity, storeCode }) {
         const isDefaultStore = MultistoreUtils.isDefaultStoreView(storeCode);
+        const defaultStoreCode = MultistoreUtils.getDefaultStoreCode();
         return new Promise((resolve, reject) => {
             client.smembers(`i:${entity}:queue`, (err, members) => {
                 if (err) reject();
@@ -88,8 +89,12 @@ class JobManager {
                     const queuedIds = take(members, 50)
                         .filter(id => {
                             const idStoreCode = id.split(':')[1];
-                            return (!idStoreCode && isDefaultStore) || idStoreCode === storeCode;
+                            if (!storeCode && defaultStoreCode === idStoreCode) return true;
+                            if (!idStoreCode && isDefaultStore) return true;
+                            if (idStoreCode === storeCode) return true;
+                            return false;
                         });
+
                     resolve(queuedIds);
                 }
             });
