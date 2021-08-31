@@ -29,15 +29,27 @@ class ReindexJobCreator {
         if (priority && !Object.keys(ReindexJobCreator.Priority).includes(priority)) { throw new Error('Priority not supported'); }
         ids = ids.map(i => String(i));
 
-        const allowedJobs = await this._jobManager.getUniqueJobs({ entity, ids });
+        const allowedJobs = await this._jobManager.getUniqueJobs({ entity, ids, storeCode });
         const shouldAbort = this[_shouldAbort](ids, allowedJobs);
 
         if (shouldAbort) { return Promise.resolve(); }
-        await this._jobManager.enqueueReindexForEntity({ entity, ids });
+        await this._jobManager.enqueueReindexForEntity({ entity, ids, storeCode });
 
         return this[_createJobDataFunc]({ entity, storeCode, priority, allowedJobs });
     };
 
+    /***
+     * Creates a new reimport job. This will fetch all inactive pending tasks from que
+     * and try to return a list of uniq non-duplicated objects ids.
+     * IDS that were appended to queue processing earlier should not be processed again.
+     * For this task `difference` lodash function is used. It compares list of ids that were
+     * saved in que before with ids from current job.
+     * @param entity - value of enum 'EntityType'
+     * @param storeCode
+     * @param priority
+     * @param allowedJobs - list of ids that were compared against 'i:{{entity}}:queue' redis set
+     * @returns {Promise<any>}
+     */
     [_createJobDataFunc] ({ entity, storeCode, priority, allowedJobs }) {
         return new Promise(async (resolve, reject) => {
             const jobData = {
@@ -47,6 +59,11 @@ class ReindexJobCreator {
                 }
             };
 
+            /**
+             * This function is a second step for job duplication check.
+             * This method returns ids that are not present in queue.
+             * @returns {Promise<any>}
+             */
             const getUniqJobIds = () => {
                 return new Promise((resolve, reject) => {
                     queue.inactive((err, ids) => {

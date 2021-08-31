@@ -53,7 +53,6 @@ function getMagentoDefaultConfig (storeCode) {
         REDIS_PORT: config.redis.port,
         REDIS_DB: config.redis.db,
         REDIS_AUTH: config.redis.auth,
-        INDEX_NAME: config.elasticsearch.indices[0],
         DATABASE_URL: `${config.elasticsearch.protocol}://${config.elasticsearch.host}:${config.elasticsearch.port}`,
         ELASTICSEARCH_API_VERSION: config.elasticsearch.apiVersion
     }
@@ -82,6 +81,7 @@ class ReindexExecutor {
         this[_assertJobDataIsValid]({ entity, ids });
 
         const func = this[ReindexExecutor.execMap[entity]];
+        ids = ids.map(id => id.split(':')[0]);
         return func.call(this, { entity, ids });
     }
 

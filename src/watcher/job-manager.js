@@ -12,17 +12,21 @@ class JobManager {
     /**
      * Returns ids of entities for which reindexer should be run
      * Jobs that are running for the same objects will not be added
-     * to the queue
+     * to the queue.
      * @param entity
      * @param ids
      * @returns {Promise<unknown>}
      */
-    getUniqueJobs ({ entity, ids }) {
+    getUniqueJobs ({ entity, ids, storeCode = '' }) {
         return new Promise((resolve, reject) => {
             client.smembers(`i:${entity}:queue`, (err, data) => {
                 if (err) {
                     reject(new Error(`Cannot create job: ` + err));
                 } else if (data && ids && ids.length > 0 && !isEmpty(data)) {
+                    data = data
+                        .filter(id => id.split(':')[1] === storeCode)
+                        .map(id => id.split(':')[0]);
+
                     const diff = difference(data, ids);
                     resolve(diff);
                 } else if (ids && ids.length > 0) {
@@ -35,38 +39,16 @@ class JobManager {
     }
 
     /**
-     * Saves metadata info about import job
+     * Appends ids to `i:{{entity}}:queue` redis set.
+     * This set contains a collection of ids for entities that are scheduled for reindex.
      * @param entity
      * @param ids
-     * @param jobId
-     * @returns {Promise<unknown>}
+     * @returns {Promise<*>}
      */
-    saveJob ({ entity, ids, jobId }) {
-        return new Promise((resolve, reject) => {
-            if (!ids || !(ids instanceof Array)) {
-                client.hmset(`i:${entity}:status`, 'full', jobId, (err) => {
-                    if (err) { reject(); }
-                    else {
-                        resolve({ 'full': jobId });
-                    }
-                });
-                return;
-            }
-
-            ids.forEach((id, index) => {
-                client.hmset(`i:${entity}:status`, id, jobId, (err) => {
-                    if (err) { reject(); }
-                    else {
-                        resolve({ [id]: jobId });
-                    }
-                });
-            });
-        });
-    }
-
-    async enqueueReindexForEntity ({ entity, ids }) {
+    async enqueueReindexForEntity ({ entity, ids, storeCode = '' }) {
         const saddToPromise = (id) => new Promise((resolve, reject) => {
-            client.sadd(`i:${entity}:queue`, id, (err) => {
+            const data = storeCode ? `${id}:${storeCode}` : id;
+            client.sadd(`i:${entity}:queue`, data, (err) => {
                 if (err) reject();
                 else resolve();
             });
