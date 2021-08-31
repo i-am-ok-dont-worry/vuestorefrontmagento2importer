@@ -6,6 +6,7 @@ const difference = require('lodash/difference');
 const take = require('lodash/take');
 const isEmpty = require('lodash/isEmpty');
 const kue = require('kue');
+const MultistoreUtils = require('../helpers/multistore-utils');
 
 class JobManager {
 
@@ -79,10 +80,18 @@ class JobManager {
     }
 
     async getQueuedIdsForEntity({ entity, storeCode }) {
+        const isDefaultStore = MultistoreUtils.isDefaultStoreView(storeCode);
         return new Promise((resolve, reject) => {
             client.smembers(`i:${entity}:queue`, (err, members) => {
                 if (err) reject();
-                else resolve(take(members, 50).filter(id => id.split(':')[1] === storeCode));
+                else {
+                    const queuedIds = take(members, 50)
+                        .filter(id => {
+                            const idStoreCode = id.split(':')[1];
+                            return (!idStoreCode && isDefaultStore) || idStoreCode === storeCode;
+                        });
+                    resolve(queuedIds);
+                }
             });
         });
     }
