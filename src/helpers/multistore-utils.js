@@ -12,10 +12,8 @@ class MultiStoreUtils {
             const [defaultStore] = config.availableStores || ['all'];
             const storeView = config['storeViews'][defaultStore];
 
-            debugger;
             return storeView.storeCode || 'all';
         } catch (e) {
-            debugger;
             return 'all';
         }
     }
