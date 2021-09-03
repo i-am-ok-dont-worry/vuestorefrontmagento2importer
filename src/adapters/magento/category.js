@@ -177,6 +177,8 @@ class CategoryAdapter extends AbstractMagentoAdapter {
   async afterImport() {
     try {
       if (this.context.ids || this.context.ids instanceof Array) { return; }
+      const wait = () => new Promise((resolve) => setTimeout(() => resolve(), 2000));
+      await wait();
       await this.db.remapIndex('category', {
         mappings: {
           properties: {
