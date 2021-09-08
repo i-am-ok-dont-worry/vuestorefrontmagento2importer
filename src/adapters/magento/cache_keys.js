@@ -1,4 +1,4 @@
-var config = require('../../config')
+var config = require('config')
 
 module.exports = {
   CACHE_KEY_CATEGORY: config.db.indexName + '_cat_%s',
