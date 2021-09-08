@@ -52,6 +52,10 @@ class PageAdapter extends AbstractMagentoAdapter {
         return this.api.pages.get(pageId);
     }
 
+    getLabel (item) {
+        return `[(${item.id}) - ${item.identifier}]`;
+    }
+
     prepareItems(items) {
         if (!items)
           return items;
