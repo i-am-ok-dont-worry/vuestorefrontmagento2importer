@@ -16,12 +16,22 @@ class PageAdapter extends AbstractMagentoAdapter {
         return 'adapters/magento/PageAdapter';
     }
 
-    getSourceData(context) {
+    async getSourceData(context) {
         if (this.use_paging) {
             return this.api.pages.list('&searchCriteria[currentPage]=' + this.page + '&searchCriteria[pageSize]=' + this.page_size + (query ? '&' + query : ''))
                 .catch((err) => {
                     throw new Error(err);
                 });
+        }
+
+        if (context.ids && context.ids instanceof Array && context.ids.length > 0) {
+            let pages = [];
+            for (let id of context.ids) {
+                const page = await this.fetchPage(id);
+                pages.push(page);
+            }
+
+            return { items: pages, total_count: pages.length };
         }
 
         return this.api.pages.list()
@@ -42,8 +52,12 @@ class PageAdapter extends AbstractMagentoAdapter {
         return this.api.pages.get(pageId);
     }
 
+    getLabel (item) {
+        return `[(${item.id}) - ${item.identifier}]`;
+    }
+
     prepareItems(items) {
-        if(!items)
+        if (!items)
           return items;
 
         if (items.total_count)

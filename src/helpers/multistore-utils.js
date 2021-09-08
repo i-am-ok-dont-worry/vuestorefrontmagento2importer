@@ -5,7 +5,7 @@ class MultiStoreUtils {
     static getStoreCode() {
         try {
             // Support for next api
-            if (config.hasOwnProperty('storeViews')) {
+            if (config.hasOwnProperty('storeViews') && config.storeViews.default_store_code) {
                 return config.storeViews.default_store_code;
             }
 
@@ -13,6 +13,20 @@ class MultiStoreUtils {
             const storeView = config['storeViews'][defaultStore];
 
             return storeView.storeCode || 'all';
+        } catch (e) {
+            return 'all';
+        }
+    }
+
+    static getDefaultStoreCode() {
+        try {
+            // Support for next api
+            if (config.hasOwnProperty('storeViews') && config.storeViews.default_store_code) {
+                return config.storeViews.default_store_code;
+            }
+
+            const [defaultStore] = config.availableStores || ['all'];
+            return defaultStore;
         } catch (e) {
             return 'all';
         }

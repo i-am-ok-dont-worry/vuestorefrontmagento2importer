@@ -140,6 +140,25 @@ class ElasticsearchAdapter extends AbstractNosqlAdapter {
   }
 
   /**
+   * Deletes document from collection by it's id
+   * @param {string} collectionName
+   * @param {string} id - document id
+   * @param {Function} callback - success callback
+   */
+  deleteDocument(collectionName, id, callback = () => {}) {
+    const deleteRequestBody = {
+      id,
+      index: this.getPhysicalIndexName(collectionName),
+      refresh: true
+    };
+
+    this.db.delete(deleteRequestBody, function (error, response) {
+      if (error) throw new Error(error);
+      else callback(response);
+    });
+  }
+
+  /**
   * Remove records other than <record>.tsk = "transactionKey"
   * @param {String} collectionName
   * @param {int} transactionKey transaction key - which is usually a timestamp

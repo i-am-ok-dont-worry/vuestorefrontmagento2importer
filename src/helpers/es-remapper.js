@@ -13,7 +13,7 @@ class ESRemapper {
             }
 
             const attributes = await this.db.getDocuments('attribute', {}, 2000);
-            const mapping = await MappingUtils.updateProductMapping(attributes);
+            const mapping = await MappingUtils.updateProductMapping(attributes, storeCode);
             await this.db.remapIndex('product', mapping);
 
             logger.info(`ES mapping updated`);

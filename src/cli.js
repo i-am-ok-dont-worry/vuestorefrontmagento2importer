@@ -107,9 +107,11 @@ program
 
 program
     .command('remap')
+    .option('--storeCode <storeCode>', 'storeCode')
     .action(async (cmd) => {
         let mapper = new ESRemapper();
-        await mapper.updateElasticSearchMapping();
+        let storeCode = cmd.storeCode || MultiStoreUtils.getStoreCode();
+        await mapper.updateElasticSearchMapping(storeCode);
         process.exit();
     });
 
