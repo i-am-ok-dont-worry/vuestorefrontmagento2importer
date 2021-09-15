@@ -1,7 +1,7 @@
 const { EntityType } = require('./entity');
 const kue = require('kue');
 const config = require('config');
-const queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
+const queue = kue.createQueue(Object.assign({}, { redis: config.redis }));
 const JobManager = require('./job-manager');
 const difference = require('lodash/difference');
 const MultiStoreUtils = require('../helpers/multistore-utils');

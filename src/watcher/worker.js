@@ -1,6 +1,6 @@
 const kue = require('kue');
 const config = require('config');
-const queue = kue.createQueue(Object.assign(config.kue, { redis: config.redis }));
+const queue = kue.createQueue(Object.assign({}, { redis: config.redis }));
 const ReindexExecutor = require('./executor');
 const Manager = require('./job-manager');
 const MultistoreUtils = require('../helpers/multistore-utils');

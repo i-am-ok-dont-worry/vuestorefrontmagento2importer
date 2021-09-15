@@ -5,8 +5,8 @@ class AbstractNosqlAdapter{
 
   validateConfig(config){
 
-    if(!config['db']['url'])
-      throw Error('db.url must be set up in config');
+    if(!config['elasticsearch']['host'])
+      throw Error('elasticsearch.host must be set up in config');
 
   }
 
