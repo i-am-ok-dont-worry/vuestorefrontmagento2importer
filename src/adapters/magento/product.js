@@ -338,7 +338,7 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
     }
 
     async _expandConfigurableOptionsAttributes (item) {
-        const subPromises = [];
+        const { items: attributes } = await this.api.attributes.list();
         const translateAttributeLabel = (attr, optionId) => {
             if (attr) {
                 let opt = attr.options.find((op) => {
@@ -353,24 +353,14 @@ class ProductNewAdapter extends AbstractMagentoAdapter {
         };
 
         for (let option of item.configurable_options) {
-            let atrKey = util.format(CacheKeys.CACHE_KEY_ATTRIBUTE, option.attribute_id);
-            subPromises.push(new Promise((resolve, reject) => {
-                logger.info(`Configurable options for ${atrKey}`);
-                this.cache.get(atrKey, (err, serializedAtr) => {
-                    let atr = JSON.parse(serializedAtr);
-                    if (atr != null) {
-                        option.attribute_code = atr.attribute_code;
-                        option.values.map((el) => {
-                            el.label = translateAttributeLabel(atr, el.value_index);
-                        });
-                    }
-
-                    resolve(item);
-                });
-            }));
+            let { attribute_id, values } = option;
+            const attribute = attributes.find(attr => String(attr.attribute_id) === String(attribute_id));
+            option.attribute_code = attribute.attribute_code;
+            option.values = values.map(value => {
+                value.label = translateAttributeLabel(attribute, value.value_index);
+                return value;
+            });
         }
-
-        await Promise.all(subPromises);
     }
 
     /**
