@@ -74,7 +74,7 @@ class ReindexExecutor {
      */
     [_handleAttributesReindex](context) {
         return new Promise((resolve, reject) => {
-            let importer = new MagentoImporter({ ids: context.ids, adapter: 'attribute' });
+            let importer = new MagentoImporter({ ids: context.ids, adapter: 'attribute', storeCode: this.storeCode });
 
             importer.run(() => {
                 resolve();
