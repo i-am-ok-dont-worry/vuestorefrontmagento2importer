@@ -1,6 +1,5 @@
 {
   "name": "@grupakmk/mage2vuestorefront",
-  "private": true,
   "version": "2.0.0",
   "description": "Magento sync for products, categories, users and orders",
   "author": "Piotr Karwatka",
